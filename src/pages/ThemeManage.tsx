@@ -275,6 +275,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     fakePingForUnbound: settings.fakePingForUnbound,
     showHomeOverview: settings.showHomeOverview,
     homeOverviewDensity: settings.homeOverviewDensity,
+    homeOverviewCollapsible: settings.homeOverviewCollapsible,
     showGroupTabs: settings.showGroupTabs,
     showRegionBar: settings.showRegionBar,
     showCardGroup: settings.showCardGroup,
@@ -1789,6 +1790,13 @@ export function ThemeManage() {
               ))}
             </div>
           </div>
+          <ToggleRow
+            field="homeOverviewCollapsible"
+            title="默认折叠总览为精简条"
+            desc="开启后顶部总览默认收成一行核心数据，点击箭头展开完整总览。"
+            checked={draft.homeOverviewCollapsible}
+            onPatch={patch}
+          />
           <ToggleRow
             field="showGroupTabs"
             title="显示分组筛选"

@@ -49,6 +49,7 @@ import { CompactNodeCard } from "./CompactNodeCard";
 import { MiniNodeCard } from "./MiniNodeCard";
 import { NodeCard } from "./NodeCard";
 import { NodeListView } from "./NodeListView";
+import { OverviewCollapseBar, useOverviewCollapsed } from "./OverviewCollapseBar";
 import { RenewalReminder } from "./RenewalReminder";
 import type { NodeViewMode } from "@/utils/themeSettings";
 import { resolveHomeOverviewDense } from "@/utils/themeSettings";
@@ -453,6 +454,10 @@ export function NodeGrid() {
     };
   }, [visibleNodes]);
   const showHomeOverview = themeSettings.isReady && themeSettings.showHomeOverview;
+  const homeOverviewCollapsible =
+    showHomeOverview && themeSettings.isReady && themeSettings.homeOverviewCollapsible;
+  const { expanded: overviewExpanded, toggle: toggleOverviewExpanded } =
+    useOverviewCollapsed(homeOverviewCollapsible);
   const showTrafficPopover = themeSettings.isReady && themeSettings.showTodayTrafficPopover;
   const hasNodes = visibleMeta.length > 0;
   // 卡内入口与悬浮入口互斥，避免重复操作入口。
@@ -676,22 +681,33 @@ export function NodeGrid() {
       )}
       <HomeBrand siteName={siteName} />
       {showHomeOverview && (
-        <HomeOverviewCards
-          overview={overview}
-          dense={resolveHomeOverviewDense(themeSettings.homeOverviewDensity, mode)}
-          showDetailButton={showCostDetailButton}
-          renewalNodes={renewalNodes}
-          costSummary={costSummary}
-          costLoading={costLoading}
-          showOverviewRatings={themeSettings.showOverviewRatings}
-          showTrafficRating={themeSettings.showTrafficRating}
-          showBandwidthRating={themeSettings.showBandwidthRating}
-          showAssetRating={themeSettings.showAssetRating}
-          trafficRatingLabels={themeSettings.trafficRatingLabels}
-          bandwidthRatingLabels={themeSettings.bandwidthRatingLabels}
-          assetRatingLabels={themeSettings.assetRatingLabels}
-          onWarmTraffic={warmTrafficPage}
-        />
+        <>
+          {homeOverviewCollapsible && (
+            <OverviewCollapseBar
+              data={overview}
+              expanded={overviewExpanded}
+              onToggle={toggleOverviewExpanded}
+            />
+          )}
+          {(!homeOverviewCollapsible || overviewExpanded) && (
+            <HomeOverviewCards
+              overview={overview}
+              dense={resolveHomeOverviewDense(themeSettings.homeOverviewDensity, mode)}
+              showDetailButton={showCostDetailButton}
+              renewalNodes={renewalNodes}
+              costSummary={costSummary}
+              costLoading={costLoading}
+              showOverviewRatings={themeSettings.showOverviewRatings}
+              showTrafficRating={themeSettings.showTrafficRating}
+              showBandwidthRating={themeSettings.showBandwidthRating}
+              showAssetRating={themeSettings.showAssetRating}
+              trafficRatingLabels={themeSettings.trafficRatingLabels}
+              bandwidthRatingLabels={themeSettings.bandwidthRatingLabels}
+              assetRatingLabels={themeSettings.assetRatingLabels}
+              onWarmTraffic={warmTrafficPage}
+            />
+          )}
+        </>
       )}
     </>
   );

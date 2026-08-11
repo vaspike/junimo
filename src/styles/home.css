@@ -1054,3 +1054,88 @@
   min-width: 22px;
   height: 22px;
 }
+
+/* 顶部总览折叠条:单行精简显示核心数据, 点击箭头展开/收起完整总览。 */
+.overview-collapse-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, var(--surface-elev-a) 0%, var(--surface-a) 100%);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.overview-collapse-bar:hover {
+  border-color: color-mix(in srgb, var(--accent-500) 45%, var(--hairline));
+}
+
+.overview-collapse-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.overview-collapse-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+.overview-collapse-value {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-collapse-stat[data-metric="online"] .overview-collapse-value {
+  color: var(--status-success);
+}
+
+.overview-collapse-unit {
+  margin-left: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.overview-collapse-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  transition: transform 0.2s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.overview-collapse-bar:hover .overview-collapse-arrow {
+  color: var(--accent-500);
+  background: color-mix(in srgb, var(--accent-500) 10%, transparent);
+}
+
+.overview-collapse-bar.is-expanded .overview-collapse-arrow {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 640px) {
+  .overview-collapse-bar {
+    gap: 12px;
+    padding: 8px 12px;
+  }
+  .overview-collapse-label {
+    display: none;
+  }
+}

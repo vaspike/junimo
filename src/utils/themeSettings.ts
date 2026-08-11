@@ -63,6 +63,7 @@ export interface ResolvedThemeSettings {
   fakePingForUnbound: boolean;
   showHomeOverview: boolean;
   homeOverviewDensity: "auto" | "full" | "compact";
+  homeOverviewCollapsible: boolean;
   showGroupTabs: boolean;
   showRegionBar: boolean;
   showCardGroup: boolean;
@@ -108,6 +109,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   fakePingForUnbound: false,
   showHomeOverview: true,
   homeOverviewDensity: "auto",
+  homeOverviewCollapsible: false,
   showGroupTabs: true,
   showRegionBar: true,
   showCardGroup: true,
@@ -231,6 +233,8 @@ export function normalizeThemeSettings(
       settings?.homeOverviewDensity === "full" || settings?.homeOverviewDensity === "compact"
         ? settings.homeOverviewDensity
         : "auto",
+    // 折叠为精简条:默认关闭,需站长显式开启。
+    homeOverviewCollapsible: settings?.homeOverviewCollapsible === true,
     showGroupTabs: enabledUnlessFalse(settings?.showGroupTabs),
     showRegionBar: enabledUnlessFalse(settings?.showRegionBar),
     showCardGroup: enabledUnlessFalse(settings?.showCardGroup),

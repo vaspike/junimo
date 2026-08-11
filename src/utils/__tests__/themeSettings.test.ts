@@ -39,6 +39,11 @@ describe("normalizeThemeSettings", () => {
     expect(normalizeThemeSettings({ homeOverviewDensity: "tiny" } as never).homeOverviewDensity).toBe(
       "auto",
     );
+    // 折叠为精简条:默认关闭,显式开启才生效。
+    expect(normalizeThemeSettings({}).homeOverviewCollapsible).toBe(false);
+    expect(normalizeThemeSettings({ homeOverviewCollapsible: true }).homeOverviewCollapsible).toBe(
+      true,
+    );
   });
 
   it("resolves overview dense from density tri-state and view mode", () => {

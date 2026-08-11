@@ -133,6 +133,8 @@ export interface ThemeSettings {
   showHomeOverview?: boolean;
   /** 顶部总览卡密度: auto=跟随视图模式(大卡/紧凑卡完整,mini/列表压缩); full=强制完整; compact=强制压缩。 */
   homeOverviewDensity?: "auto" | "full" | "compact";
+  /** 默认将顶部总览折叠为单行精简条, 点击箭头展开完整总览。 */
+  homeOverviewCollapsible?: boolean;
   showGroupTabs?: boolean;
   showRegionBar?: boolean;
   showCardGroup?: boolean;
