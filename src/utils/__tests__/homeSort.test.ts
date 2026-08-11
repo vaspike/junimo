@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { HomeNodeSummary } from "@/services/wsStore";
 import {
   reconcileSpeedOrder,
+  snapshotBandwidthOrder,
   sortHomeNodes,
   type HomeSortContext,
   type HomeSortDirection,
@@ -138,5 +139,25 @@ describe("reconcileSpeedOrder", () => {
       node({ uuid: "offfresh", online: false }),
     ];
     expect(reconcileSpeedOrder(nodes, ["a"]).map((n) => n.uuid)).toEqual(["a", "fresh", "offfresh"]);
+  });
+});
+
+describe("snapshotBandwidthOrder", () => {
+  it("orders by total bandwidth descending", () => {
+    const nodes = [
+      node({ uuid: "low", netUp: 1, netDown: 1 }),
+      node({ uuid: "high", netUp: 100, netDown: 200 }),
+      node({ uuid: "mid", netUp: 30, netDown: 40 }),
+    ];
+    expect(snapshotBandwidthOrder(nodes)).toEqual(["high", "mid", "low"]);
+  });
+
+  it("sinks offline nodes below all online nodes regardless of bandwidth", () => {
+    const nodes = [
+      node({ uuid: "offFast", online: false, netUp: 999, netDown: 999 }),
+      node({ uuid: "onSlow", netUp: 1, netDown: 1 }),
+      node({ uuid: "onFast", netUp: 500, netDown: 500 }),
+    ];
+    expect(snapshotBandwidthOrder(nodes)).toEqual(["onFast", "onSlow", "offFast"]);
   });
 });
