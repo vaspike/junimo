@@ -75,16 +75,24 @@ function MiniChips({
   renewalPrice,
   ipv4,
   ipv6,
+  offlineDuration,
 }: {
   tags: MiniTag[];
   renewalPrice: string | null;
   ipv4?: string | null;
   ipv6?: string | null;
+  offlineDuration?: string | null;
 }) {
-  if (!renewalPrice && tags.length === 0 && !ipv4 && !ipv6) return null;
+  if (!renewalPrice && tags.length === 0 && !ipv4 && !ipv6 && !offlineDuration) return null;
   const tagTitle = joinTagTitle(tags);
   return (
     <div className="mini-node-chip-row">
+      {offlineDuration && (
+        <span className="offline-duration-badge" title={offlineDuration}>
+          <Unplug size={10} strokeWidth={2.4} />
+          {offlineDuration}
+        </span>
+      )}
       {renewalPrice && (
         <span className="mini-node-price-tag" title={`续费价格 ${renewalPrice}`}>
           <CircleDollarSign size={11} strokeWidth={2.2} />
@@ -438,7 +446,13 @@ export const MiniNodeCard = memo(function MiniNodeCard({
         showTodayTraffic={showTodayTraffic}
         offlineDuration={offlineDuration}
       />
-      <MiniChips tags={footerTags} renewalPrice={renewalPrice} ipv4={node.ipv4} ipv6={node.ipv6} />
+      <MiniChips
+        tags={footerTags}
+        renewalPrice={renewalPrice}
+        ipv4={node.ipv4}
+        ipv6={node.ipv6}
+        offlineDuration={offlineDuration}
+      />
       <MiniVitals node={node} loadFraction={loadFraction} />
       <MiniFlow node={node} upRate={upRate} downRate={downRate} />
       <MiniHealth

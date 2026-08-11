@@ -93,6 +93,14 @@
   white-space: nowrap;
 }
 
+/* 迷你卡 chip 行高 20px, 离线徽章按行高压缩, 避免被 overflow 裁剪。 */
+.mini-node-chip-row .offline-duration-badge {
+  height: 20px;
+  font-size: 10px;
+  border-radius: 6px;
+  padding: 0 0.45rem;
+}
+
 .mini-node-price-tag svg {
   flex: 0 0 auto;
 }

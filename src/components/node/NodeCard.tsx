@@ -229,7 +229,7 @@ function NodeCardHeader({
             {offlineDuration && (
               <span className="offline-duration-badge" title={offlineDuration}>
                 <Unplug size={11} strokeWidth={2.4} />
-                已离线 {offlineDuration}
+                {offlineDuration}
               </span>
             )}
           </div>
