@@ -390,7 +390,7 @@ const degradeWarned = new Set<string>();
 export function warnDegradedOnce(key: string, message: string) {
   if (degradeWarned.has(key)) return;
   degradeWarned.add(key);
-  console.warn(`[LuminaPlus] ${message}`);
+  console.warn(`[LuminaPro] ${message}`);
 }
 
 function isMissingMetricMethod(error: unknown) {

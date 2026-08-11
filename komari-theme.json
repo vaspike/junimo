@@ -1,9 +1,9 @@
 {
-  "name": "Komari-Theme-LuminaPlus",
-  "short": "LuminaPlus",
-  "description": "Komari-Theme-LuminaPlus",
+  "name": "lumina-pro",
+  "short": "LuminaPro",
+  "description": "lumina-pro",
   "version": "1.2.9",
-  "author": "shark&shanyang",
-  "url": "https://github.com/shanyang242/Komari-Theme-LuminaPlus",
+  "author": "Planck",
+  "url": "https://github.com/vaspike/Komari-Theme-LuminaPlus",
   "preview": "preview.png"
 }

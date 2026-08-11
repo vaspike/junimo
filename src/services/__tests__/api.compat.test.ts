@@ -71,7 +71,7 @@ describe("Komari 1.2.5 metric compatibility", () => {
       rpcCallMock.mock.calls.some(([method]) => method === "public:getPingMetricStats"),
     ).toBe(false);
     expect(warnSpy).toHaveBeenCalledWith(
-      "[LuminaPlus] 检测到旧版后端,Ping 概览已使用兼容 records 接口",
+      "[LuminaPro] 检测到旧版后端,Ping 概览已使用兼容 records 接口",
     );
   });
 });

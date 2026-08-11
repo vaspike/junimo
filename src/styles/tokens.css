@@ -1,4 +1,4 @@
-/* LuminaPlus 配色 tokens。dark 模式调色板逐像素取自参考卡片图
+/* LuminaPro 配色 tokens。dark 模式调色板逐像素取自参考卡片图
    (2026-04-21_01-07-38.png),这里每个 hex 都对应参考图中真实的像素颜色。 */
 
 /* token 只声明在根元素上：用 :root 限定，避免卡片等带 data-appearance 的元素

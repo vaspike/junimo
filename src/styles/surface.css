@@ -1,4 +1,4 @@
-/* LuminaPlus 共享表面样式 */
+/* LuminaPro 共享表面样式 */
 
 /* 固定的全视口背景图,画在 body::before 上以便首帧即存在(index.html 内联脚本在 React
    挂载前就注入这些变量,避免不透明→玻璃的闪烁)。位于 body 的 --bg-0 兜底之上、#root 内容
