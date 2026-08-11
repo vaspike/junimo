@@ -32,6 +32,22 @@ import {
 
 export type Appearance = "system" | "light" | "dark";
 export type NodeViewMode = "large" | "compact" | "mini" | "list";
+export type HomeOverviewDensity = "auto" | "full" | "compact";
+
+/**
+ * 顶部总览卡是否使用密集(压缩)变体。
+ * - full: 强制完整(任何视图模式都不压缩)
+ * - compact: 强制压缩(任何视图模式都压缩)
+ * - auto(默认): 跟随视图模式——大卡/紧凑卡完整, mini/列表压缩。
+ */
+export function resolveHomeOverviewDense(
+  density: HomeOverviewDensity,
+  mode: NodeViewMode,
+): boolean {
+  if (density === "full") return false;
+  if (density === "compact") return true;
+  return mode === "mini" || mode === "list";
+}
 
 export interface ResolvedThemeSettings {
   defaultAppearance: Appearance;
@@ -46,6 +62,7 @@ export interface ResolvedThemeSettings {
   homepageMultiPingGroups: HomepageMultiPingGroup[];
   fakePingForUnbound: boolean;
   showHomeOverview: boolean;
+  homeOverviewDensity: "auto" | "full" | "compact";
   showGroupTabs: boolean;
   showRegionBar: boolean;
   showCardGroup: boolean;
@@ -90,6 +107,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   homepageMultiPingGroups: [],
   fakePingForUnbound: false,
   showHomeOverview: true,
+  homeOverviewDensity: "auto",
   showGroupTabs: true,
   showRegionBar: true,
   showCardGroup: true,
@@ -208,6 +226,11 @@ export function normalizeThemeSettings(
     // 默认关闭(需手动开启):给访客展示的是模拟数据,必须由站长显式决定。
     fakePingForUnbound: settings?.fakePingForUnbound === true,
     showHomeOverview: enabledUnlessFalse(settings?.showHomeOverview),
+    // 三态密度:非法值一律回退 auto(跟随视图模式),保证存量配置与未知写入安全。
+    homeOverviewDensity:
+      settings?.homeOverviewDensity === "full" || settings?.homeOverviewDensity === "compact"
+        ? settings.homeOverviewDensity
+        : "auto",
     showGroupTabs: enabledUnlessFalse(settings?.showGroupTabs),
     showRegionBar: enabledUnlessFalse(settings?.showRegionBar),
     showCardGroup: enabledUnlessFalse(settings?.showCardGroup),

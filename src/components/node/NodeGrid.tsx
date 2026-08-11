@@ -51,6 +51,7 @@ import { NodeCard } from "./NodeCard";
 import { NodeListView } from "./NodeListView";
 import { RenewalReminder } from "./RenewalReminder";
 import type { NodeViewMode } from "@/utils/themeSettings";
+import { resolveHomeOverviewDense } from "@/utils/themeSettings";
 import type { RenewalReminderSource } from "@/utils/renewalReminder";
 
 // 卡片视图网格密度；列表档由独立组件布局。
@@ -677,7 +678,7 @@ export function NodeGrid() {
       {showHomeOverview && (
         <HomeOverviewCards
           overview={overview}
-          dense={mode === "mini" || mode === "list"}
+          dense={resolveHomeOverviewDense(themeSettings.homeOverviewDensity, mode)}
           showDetailButton={showCostDetailButton}
           renewalNodes={renewalNodes}
           costSummary={costSummary}

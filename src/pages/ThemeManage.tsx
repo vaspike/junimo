@@ -73,6 +73,7 @@ import {
 import {
   DEFAULT_THEME_SETTINGS,
   normalizeThemeSettings,
+  type HomeOverviewDensity,
   type ResolvedThemeSettings,
 } from "@/utils/themeSettings";
 import {
@@ -86,6 +87,11 @@ const APPEARANCE_OPTIONS = [
   { value: "system", label: "跟随系统", icon: SunMoon },
   { value: "dark", label: "深色", icon: Moon },
 ] as const;
+const OVERVIEW_DENSITY_OPTIONS: Array<{ value: HomeOverviewDensity; label: string }> = [
+  { value: "auto", label: "跟随视图" },
+  { value: "full", label: "完整" },
+  { value: "compact", label: "压缩" },
+];
 const NODE_VIEW_MODE_OPTIONS = [
   { value: "large", label: "大卡片", icon: LayoutGrid },
   { value: "compact", label: "小卡片", icon: Rows3 },
@@ -268,6 +274,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     homepageMultiPingGroups: settings.homepageMultiPingGroups,
     fakePingForUnbound: settings.fakePingForUnbound,
     showHomeOverview: settings.showHomeOverview,
+    homeOverviewDensity: settings.homeOverviewDensity,
     showGroupTabs: settings.showGroupTabs,
     showRegionBar: settings.showRegionBar,
     showCardGroup: settings.showCardGroup,
@@ -1760,6 +1767,28 @@ export function ThemeManage() {
             checked={draft.showHomeOverview}
             onPatch={patch}
           />
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <span className="text-[13px] font-medium text-[var(--text-primary)]">总览卡密度</span>
+              <span className="text-[11px] text-[var(--text-tertiary)]">
+                压缩后顶部总览高度更紧凑。
+              </span>
+            </div>
+            <div className="instance-segmented is-scrollable">
+              {OVERVIEW_DENSITY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  data-active={draft.homeOverviewDensity === option.value ? "true" : "false"}
+                  aria-pressed={draft.homeOverviewDensity === option.value}
+                  disabled={!draft.showHomeOverview}
+                  onClick={() => patch("homeOverviewDensity", option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <ToggleRow
             field="showGroupTabs"
             title="显示分组筛选"

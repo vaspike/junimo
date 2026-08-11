@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { normalizeThemeSettings } from "@/utils/themeSettings";
+import {
+  normalizeThemeSettings,
+  resolveHomeOverviewDense,
+} from "@/utils/themeSettings";
 
 describe("normalizeThemeSettings", () => {
   it("keeps mini and falls unknown saved view modes back to compact", () => {
@@ -22,6 +25,34 @@ describe("normalizeThemeSettings", () => {
   it("defaults overview ratings on unless explicitly disabled", () => {
     expect(normalizeThemeSettings({}).showOverviewRatings).toBe(true);
     expect(normalizeThemeSettings({ showOverviewRatings: false }).showOverviewRatings).toBe(false);
+  });
+
+  it("normalizes home overview density to auto unless explicitly full/compact", () => {
+    expect(normalizeThemeSettings({}).homeOverviewDensity).toBe("auto");
+    expect(normalizeThemeSettings({ homeOverviewDensity: "full" }).homeOverviewDensity).toBe(
+      "full",
+    );
+    expect(normalizeThemeSettings({ homeOverviewDensity: "compact" }).homeOverviewDensity).toBe(
+      "compact",
+    );
+    // 未知/非法值回退 auto,保证存量配置与未知写入安全。
+    expect(normalizeThemeSettings({ homeOverviewDensity: "tiny" } as never).homeOverviewDensity).toBe(
+      "auto",
+    );
+  });
+
+  it("resolves overview dense from density tri-state and view mode", () => {
+    // auto: 跟随视图模式——大卡/紧凑卡完整, mini/列表压缩。
+    expect(resolveHomeOverviewDense("auto", "large")).toBe(false);
+    expect(resolveHomeOverviewDense("auto", "compact")).toBe(false);
+    expect(resolveHomeOverviewDense("auto", "mini")).toBe(true);
+    expect(resolveHomeOverviewDense("auto", "list")).toBe(true);
+    // full: 任何视图模式都强制完整。
+    expect(resolveHomeOverviewDense("full", "mini")).toBe(false);
+    expect(resolveHomeOverviewDense("full", "list")).toBe(false);
+    // compact: 任何视图模式都强制压缩。
+    expect(resolveHomeOverviewDense("compact", "large")).toBe(true);
+    expect(resolveHomeOverviewDense("compact", "compact")).toBe(true);
   });
 
   it("normalizes homepage multi-ping tasks while preserving an enabled draft for repair", () => {
