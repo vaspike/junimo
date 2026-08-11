@@ -172,13 +172,21 @@
 [data-tag="brown"] {
   --tag-bg: rgba(233, 123, 53, 0.16);
   --tag-fg: #e97b35;}
-[data-tag="green"],
-[data-tag="grass"],
-[data-tag="mint"],
-[data-tag="jade"],
+[data-tag="green"] {
+  --tag-bg: rgba(48, 164, 108, 0.16);
+  --tag-fg: #30a46c;}
+[data-tag="grass"] {
+  --tag-bg: rgba(70, 167, 88, 0.16);
+  --tag-fg: #46a758;}
+[data-tag="mint"] {
+  --tag-bg: rgba(76, 187, 165, 0.16);
+  --tag-fg: #4cbba5;}
+[data-tag="jade"] {
+  --tag-bg: rgba(41, 163, 131, 0.16);
+  --tag-fg: #29a383;}
 [data-tag="lime"] {
-  --tag-bg: rgba(84, 180, 132, 0.16);
-  --tag-fg: #54b484;}
+  --tag-bg: rgba(141, 182, 84, 0.16);
+  --tag-fg: #8db654;}
 [data-tag="blue"],
 [data-tag="sky"],
 [data-tag="cyan"],
