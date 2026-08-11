@@ -20,7 +20,7 @@ import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { formatBytes } from "@/utils/format";
+import { formatBytes, formatOfflineDuration } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import {
   speedRateColor,
@@ -99,9 +99,11 @@ export const NodeCard = memo(function NodeCard({
     pingError,
     isOnline,
     isOffline,
+    offlineSince,
     osName,
   } = model;
   const showConnections = themeSettings.isReady && themeSettings.showConnections;
+  const offlineDuration = isOffline ? formatOfflineDuration(offlineSince).full : null;
 
   return (
     <article
@@ -113,6 +115,7 @@ export const NodeCard = memo(function NodeCard({
           subtitle={subtitle}
           osName={osName}
           showTodayTraffic={showTodayTraffic}
+          offlineDuration={offlineDuration}
         />
 
         <div className="server-card-stack">
@@ -193,11 +196,13 @@ function NodeCardHeader({
   subtitle,
   osName,
   showTodayTraffic,
+  offlineDuration,
 }: {
   node: NodeCardNode;
   subtitle: string;
   osName: string;
   showTodayTraffic: boolean;
+  offlineDuration?: string | null;
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   return (
@@ -213,7 +218,7 @@ function NodeCardHeader({
             {node.name}
           </Link>
         </div>
-        {(subtitle || node.ipv4 || node.ipv6) && (
+        {(subtitle || node.ipv4 || node.ipv6 || offlineDuration) && (
           <div className="server-card-subtitle-row">
             {subtitle && (
               <span className="server-card-subtitle" title={subtitle}>
@@ -221,6 +226,12 @@ function NodeCardHeader({
               </span>
             )}
             <IpStackBadges ipv4={node.ipv4} ipv6={node.ipv6} />
+            {offlineDuration && (
+              <span className="offline-duration-badge" title={offlineDuration}>
+                <Unplug size={11} strokeWidth={2.4} />
+                已离线 {offlineDuration}
+              </span>
+            )}
           </div>
         )}
       </div>

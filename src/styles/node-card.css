@@ -143,6 +143,24 @@
   gap: 6px;
 }
 
+/* 离线时长徽章:与双栈标识同形态 pill, 用 error 色系区分状态。 */
+.offline-duration-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 0.5rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--status-error) 22%, transparent);
+  background: color-mix(in srgb, var(--status-error) 10%, transparent);
+  color: var(--status-error);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
 /* V4/V6 双栈标识药丸：仅字样（不显示真实 IP）。data-tag="green" 复用绿色标签的 token，与标签统一 */
 .ip-stack-badge {
   display: inline-flex;

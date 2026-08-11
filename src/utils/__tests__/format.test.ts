@@ -5,6 +5,7 @@ import {
   formatByteRateLabel,
   formatClockTime,
   formatExpireDays,
+  formatOfflineDuration,
   formatTrafficRateLabel,
   formatUptimeDays,
   getExpireDaysRemaining,
@@ -169,5 +170,44 @@ describe("parseTags", () => {
     expect(parseTags("CN2GIA")).toEqual([{ label: "CN2GIA", color: "blue" }]);
     expect(parseTags("4837")).toEqual([{ label: "4837", color: "green" }]);
     expect(parseTags("Random")).toEqual([{ label: "Random", color: "violet" }]);
+  });
+});
+
+describe("formatOfflineDuration", () => {
+  const NOW = Date.parse("2026-06-13T12:00:00.000Z");
+
+  it("reports unknown when no heartbeat timestamp", () => {
+    expect(formatOfflineDuration(null, NOW)).toEqual({ value: "未知", unit: "", full: "离线时长未知" });
+    expect(formatOfflineDuration(0, NOW)).toEqual({ value: "未知", unit: "", full: "离线时长未知" });
+  });
+
+  it("says just-offline for under a minute", () => {
+    expect(formatOfflineDuration(NOW - 30_000, NOW)).toEqual({
+      value: "刚刚",
+      unit: "",
+      full: "刚刚离线",
+    });
+  });
+
+  it("formats minutes, hours and days", () => {
+    expect(formatOfflineDuration(NOW - 5 * 60_000, NOW)).toEqual({
+      value: "5",
+      unit: "分钟",
+      full: "离线 5 分钟",
+    });
+    expect(formatOfflineDuration(NOW - 3 * 3_600_000, NOW)).toEqual({
+      value: "3",
+      unit: "小时",
+      full: "离线 3 小时",
+    });
+    expect(formatOfflineDuration(NOW - 2 * 86_400_000, NOW)).toEqual({
+      value: "2",
+      unit: "天",
+      full: "离线 2 天",
+    });
+  });
+
+  it("clamps negative drift to just-offline", () => {
+    expect(formatOfflineDuration(NOW + 60_000, NOW).full).toBe("刚刚离线");
   });
 });

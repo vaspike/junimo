@@ -20,7 +20,7 @@ import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { formatBytes } from "@/utils/format";
+import { formatBytes, formatOfflineDuration } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import { speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
 import { supportsFineHover } from "@/utils/mediaQuery";
@@ -317,12 +317,15 @@ function CompactNodeHeader({
   node,
   osName,
   showTodayTraffic,
+  offlineDuration,
 }: {
   node: CompactNode;
   osName: string;
   showTodayTraffic: boolean;
+  offlineDuration?: string | null;
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
+  const title = offlineDuration ? `${node.name}（${offlineDuration}）` : node.name;
   return (
     <header className="compact-node-header">
       <div className="compact-node-title-wrap">
@@ -331,7 +334,7 @@ function CompactNodeHeader({
           <Link
             to={`/instance/${encodeURIComponent(node.uuid)}`}
             className="compact-node-title"
-            title={node.name}
+            title={title}
           >
             {node.name}
           </Link>
@@ -709,6 +712,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
   const showConnections = themeSettings.isReady && themeSettings.showConnections;
   // 开关关闭或节点离线时,完全跳过格式化工作。
   const uptimeLabel = showUptime && !isOffline ? formatCompactUptime(node.uptime) : "";
+  const offlineDuration = isOffline ? formatOfflineDuration(model.offlineSince).full : null;
 
   return (
     <article className={clsx("compact-node-card", isOffline && "is-offline")}>
@@ -716,6 +720,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
         node={node}
         osName={osName}
         showTodayTraffic={showTodayTraffic}
+        offlineDuration={offlineDuration}
       />
       <CompactNodeChips subtitle={subtitle} tags={footerTags} ipv4={node.ipv4} ipv6={node.ipv6} />
       <CompactNodeVitals node={node} loadFraction={loadFraction} />

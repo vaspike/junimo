@@ -145,6 +145,35 @@ export function getExpireDaysRemaining(
   return Math.floor((ts - now) / 86400000);
 }
 
+/** 离线时长:按最后心跳时间戳分级(刚刚/分钟/小时/天)。 */
+export function formatOfflineDuration(
+  updatedAt: number | undefined | null,
+  now = Date.now(),
+): { value: string; unit: string; full: string } {
+  if (!updatedAt || !Number.isFinite(updatedAt) || updatedAt <= 0) {
+    return { value: "未知", unit: "", full: "离线时长未知" };
+  }
+
+  const diffMs = Math.max(0, now - updatedAt);
+  const minutes = Math.floor(diffMs / 60000);
+
+  if (minutes < 1) {
+    return { value: "刚刚", unit: "", full: "刚刚离线" };
+  }
+
+  if (minutes < 60) {
+    return { value: String(minutes), unit: "分钟", full: `离线 ${minutes} 分钟` };
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return { value: String(hours), unit: "小时", full: `离线 ${hours} 小时` };
+  }
+
+  const days = Math.floor(hours / 24);
+  return { value: String(days), unit: "天", full: `离线 ${days} 天` };
+}
+
 function resolveExpireTone(days: number | null | undefined): ExpireTone {
   if (days == null || !Number.isFinite(days)) return "none";
   if (days > LONG_TERM_EXPIRE_DAYS) return "long";

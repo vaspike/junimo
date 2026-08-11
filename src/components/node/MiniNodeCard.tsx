@@ -27,7 +27,7 @@ import {
   pingEmptyLabels,
 } from "./nodeCardShared";
 import { formatHealthBucketTooltip } from "./pingBucketText";
-import { formatBytes, type ByteRateDisplay } from "@/utils/format";
+import { formatBytes, formatOfflineDuration, type ByteRateDisplay } from "@/utils/format";
 import type { NodeInfo, NodeMetrics, PingOverviewItem, PingOverviewBucket } from "@/types/komari";
 
 // 迷你卡固定为巡检布局，不跟随紧凑卡的可选指标开关；数据仍走共享模型。
@@ -40,17 +40,20 @@ function MiniHeader({
   node,
   osName,
   showTodayTraffic,
+  offlineDuration,
 }: {
   node: MiniNode;
   osName: string;
   showTodayTraffic: boolean;
+  offlineDuration?: string | null;
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   const detailHref = `/instance/${encodeURIComponent(node.uuid)}`;
+  const title = offlineDuration ? `${node.name}（${offlineDuration}）` : node.name;
   return (
     <header className="mini-node-header">
       <Flag region={node.region} size={14} />
-      <Link to={detailHref} className="mini-node-title" title={node.name}>
+      <Link to={detailHref} className="mini-node-title" title={title}>
         {node.name}
       </Link>
       {showTodayTraffic && <NodeTodayTrafficPopover uuid={node.uuid} size={13} />}
@@ -425,6 +428,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
     isOffline,
     osName,
   } = model;
+  const offlineDuration = isOffline ? formatOfflineDuration(model.offlineSince).full : null;
 
   return (
     <article className={clsx("mini-node-card", isOffline && "is-offline")}>
@@ -432,6 +436,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
         node={node}
         osName={osName}
         showTodayTraffic={showTodayTraffic}
+        offlineDuration={offlineDuration}
       />
       <MiniChips tags={footerTags} renewalPrice={renewalPrice} ipv4={node.ipv4} ipv6={node.ipv6} />
       <MiniVitals node={node} loadFraction={loadFraction} />

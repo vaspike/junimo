@@ -188,6 +188,11 @@ export function useNodeCardModel(
     ],
   );
 
+  const isOffline = metrics?.online === false;
+  // 离线时长需要随时间推进,但离线后 metrics 停更、memo 不再重算。
+  // 离线时订阅模块级分钟钟(共享一个 timer),驱动时长文本每分钟刷新;在线零开销。
+  useMinuteClock(isOffline);
+
   return useMemo(() => {
     if (!meta || !metrics || !metaModel) {
       return {
@@ -239,6 +244,7 @@ export function useNodeCardModel(
       downRate: formatByteRate(metrics.netDown),
       isOnline: metrics.online === true,
       isOffline: metrics.online === false,
+      offlineSince: metrics.updatedAt,
     };
   }, [
     homepagePingLines,
