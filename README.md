@@ -2,11 +2,10 @@
 
 lumina-pro 是一款基于 [Komari-Theme-LuminaPlus](https://github.com/shanyang242/Komari-Theme-LuminaPlus) 二次开发的独立主题。感谢原作者 [shanyang242](https://github.com/shanyang242) 与 [stqfdyr](https://github.com/stqfdyr) 的开源贡献。
 
-## 效果预览
+## 三网延迟结果监测增强, 可根据实际情况给配置多套三网监测组
 
-<p align="center">
-  <img src="docs/images/theme-preview.png" alt="lumina-pro 综合预览" width="90%">
-</p>
+<img width="768" height="449" alt="image" src="https://github.com/user-attachments/assets/f50ae888-2ca3-4e42-a806-f57b49784603" />
+
 
 ### 首页总览与节点卡片
 
