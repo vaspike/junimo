@@ -1,6 +1,6 @@
 # lumina-pro
 
-基于 [Komari-Theme-LuminaPlus](https://github.com/shanyang242/Komari-Theme-LuminaPlus) 的独立维护分支。感谢原作者 [shanyang242](https://github.com/shanyang242) 与 [stqfdyr](https://github.com/stqfdyr) 的开源主题。
+lumina-pro 是一款基于 [Komari-Theme-LuminaPlus](https://github.com/shanyang242/Komari-Theme-LuminaPlus) 二次开发的独立主题。感谢原作者 [shanyang242](https://github.com/shanyang242) 与 [stqfdyr](https://github.com/stqfdyr) 的开源贡献。
 
 ## 效果预览
 
@@ -140,10 +140,10 @@ npm run dev -- --host 0.0.0.0
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=vaspike%2FKomari-Theme-LuminaPlus&type=timeline&legend=bottom-right">
+<a href="https://www.star-history.com/?repos=vaspike%2Flumina-pro&type=timeline&legend=bottom-right">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=vaspike/Komari-Theme-LuminaPlus&type=timeline&theme=dark&legend=bottom-right" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=vaspike/Komari-Theme-LuminaPlus&type=timeline&legend=bottom-right" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=vaspike/Komari-Theme-LuminaPlus&type=timeline&legend=bottom-right" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=vaspike/lumina-pro&type=timeline&theme=dark&legend=bottom-right" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=vaspike/lumina-pro&type=timeline&legend=bottom-right" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=vaspike/lumina-pro&type=timeline&legend=bottom-right" />
  </picture>
 </a>
