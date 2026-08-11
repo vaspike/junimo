@@ -152,16 +152,6 @@
   background: color-mix(in srgb, var(--accent-500) 18%, transparent);
 }
 
-.overview-card-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.35;
-}
-
-.overview-card-action:disabled:hover {
-  color: var(--text-secondary);
-  opacity: 0.35;
-}
-
 .overview-card-action:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--text-secondary) 54%, transparent);
   outline-offset: 2px;

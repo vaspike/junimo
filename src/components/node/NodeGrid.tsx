@@ -134,7 +134,6 @@ function HomeOverviewCards({
   onWarmTraffic,
   onToggleBandwidthSort,
   bandwidthSortActive,
-  bandwidthSortDisabled,
 }: {
   overview: HomeOverview;
   costSummary: { remainingCny: number } | null;
@@ -152,7 +151,6 @@ function HomeOverviewCards({
   onWarmTraffic: () => void;
   onToggleBandwidthSort: () => void;
   bandwidthSortActive: boolean;
-  bandwidthSortDisabled: boolean;
 }) {
   const [trafficValue, trafficUnit] = formatBytes(
     overview.trafficUp + overview.trafficDown,
@@ -245,13 +243,10 @@ function HomeOverviewCards({
               bandwidthSortActive ? "恢复节点默认排序" : "按实时带宽排序节点"
             }
             aria-pressed={bandwidthSortActive}
-            disabled={bandwidthSortDisabled}
             title={
-              bandwidthSortDisabled
-                ? "未启用排序功能（主题设置 → 启用排序切换）"
-                : bandwidthSortActive
-                  ? "已按实时带宽排序，点击恢复默认"
-                  : "按实时带宽动态排序"
+              bandwidthSortActive
+                ? "已按实时带宽排序，点击恢复默认"
+                : "按实时带宽动态排序"
             }
             onClick={onToggleBandwidthSort}
           >
@@ -410,8 +405,38 @@ export function NodeGrid() {
   const sort = useHomeSort();
   // enableHomeSort 控制访客能否改排序;关闭时无视 session 覆盖、直接用管理员默认序(默认仍是 weight)。
   const sortEnabled = themeSettings.isReady && themeSettings.enableHomeSort;
-  const sortField = sortEnabled ? sort.field : themeSettings.homeSortField;
-  const sortDirection = sortEnabled ? sort.direction : themeSettings.homeSortDirection;
+  // 带宽排序独立激活态:不受 enableHomeSort 限制,按钮始终可用。
+  // 激活时渲染直接用 speed 维度(滞回门 + 3 样本平滑 + 5s 重排,复用 useHomeNodeOrder 逻辑);
+  // 再点关闭,回落到当前生效排序(enableHomeSort 开启时 = sort.field,关闭时 = 管理员默认)。
+  const [bandwidthSortActive, setBandwidthSortActive] = useState(false);
+  const prevSortFieldRef = useRef<HomeSortField | null>(null);
+  const toggleBandwidthSort = useCallback(() => {
+    setBandwidthSortActive((active) => {
+      const next = !active;
+      if (sortEnabled) {
+        // 与排序控件联动:激活切到 speed,关闭恢复点击前的维度(控件高亮同步)。
+        if (next) {
+          prevSortFieldRef.current = sort.field;
+          sort.setField("speed");
+        } else {
+          sort.setField(prevSortFieldRef.current ?? "default");
+          prevSortFieldRef.current = null;
+        }
+      }
+      return next;
+    });
+  }, [sort, sortEnabled]);
+  // 带宽激活时强制 speed 降序(自然方向),否则按当前生效排序。
+  const sortField = bandwidthSortActive
+    ? "speed"
+    : sortEnabled
+      ? sort.field
+      : themeSettings.homeSortField;
+  const sortDirection = bandwidthSortActive
+    ? "desc"
+    : sortEnabled
+      ? sort.direction
+      : themeSettings.homeSortDirection;
   const [selectedGroup, setSelectedGroup] = useState(HOME_ALL_GROUP);
   const [selectedRegion, setSelectedRegion] = useState(HOME_ALL_REGION);
   useHomepagePingOverview(mode);
@@ -425,18 +450,7 @@ export function NodeGrid() {
       ),
     [me?.logged_in, nodes, hiddenUuids],
   );
-  // 点击「实时带宽」卡按钮:切换 speed(实时网速)动态排序。激活时再点恢复点击前的维度。
-  // 复用 useHomeSort 的成熟逻辑(滞回门 + 3 样本平滑 + 5s 重排),按钮只是快捷入口。
-  const prevSortFieldRef = useRef<HomeSortField | null>(null);
-  const toggleBandwidthSort = useCallback(() => {
-    if (sort.field === "speed") {
-      sort.setField(prevSortFieldRef.current ?? "default");
-      prevSortFieldRef.current = null;
-    } else {
-      prevSortFieldRef.current = sort.field;
-      sort.setField("speed");
-    }
-  }, [sort]);
+  // 点击「实时带宽」卡按钮的激活态与排序逻辑已上移到 sortEnabled 附近(见 toggleBandwidthSort)。
   // 资产统计与卡片使用同一可见性规则，避免泄露隐藏节点信息。
   const visibleMeta = useMemo(
     () =>
@@ -746,8 +760,7 @@ export function NodeGrid() {
               assetRatingLabels={themeSettings.assetRatingLabels}
               onWarmTraffic={warmTrafficPage}
               onToggleBandwidthSort={toggleBandwidthSort}
-              bandwidthSortActive={sortEnabled && sort.field === "speed"}
-              bandwidthSortDisabled={!sortEnabled}
+              bandwidthSortActive={bandwidthSortActive}
             />
           )}
         </>
