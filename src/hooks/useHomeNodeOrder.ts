@@ -17,6 +17,8 @@ interface Params {
   direction: HomeSortDirection;
   nameByUuid: Map<string, string>;
   priceByUuid: Map<string, number | null>;
+  /** 严格带宽模式:绕过 0.5MB/s 滞回门,所有在线节点按带宽均值参与排序。带宽卡按钮用。 */
+  strictSpeed?: boolean;
 }
 
 const EMPTY_NUMBER_MAP = new Map<string, number>();
@@ -30,6 +32,7 @@ export function useHomeNodeOrder({
   direction,
   nameByUuid,
   priceByUuid,
+  strictSpeed = false,
 }: Params): HomeNodeSummary[] {
   const ringRef = useRef<Map<string, number[]>>(new Map());
   const nodesRef = useRef(nodes);
@@ -85,7 +88,12 @@ export function useHomeNodeOrder({
       for (const node of current) {
         if (node.online === false) continue;
         const value = avg.get(node.uuid) ?? 0;
-        const threshold = activeRef.current.has(node.uuid) ? HOME_SPEED_EXIT_BPS : HOME_SPEED_ENTER_BPS;
+        // 严格模式(带宽按钮)零门槛:所有在线节点都参与;否则走滞回门防低带宽抖动换位。
+        const threshold = strictSpeed
+          ? 0
+          : activeRef.current.has(node.uuid)
+            ? HOME_SPEED_EXIT_BPS
+            : HOME_SPEED_ENTER_BPS;
         if (value >= threshold) next.add(node.uuid);
       }
       activeRef.current = next;
@@ -106,7 +114,7 @@ export function useHomeNodeOrder({
     recompute();
     const id = window.setInterval(recompute, HOME_SPEED_RESORT_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [field, direction]);
+  }, [field, direction, strictSpeed]);
 
   const speedOrder = useMemo(
     () => (field === "speed" ? reconcileSpeedOrder(nodes, speedUuids) : null),

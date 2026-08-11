@@ -606,6 +606,7 @@ export function NodeGrid() {
     direction: sortDirection,
     nameByUuid,
     priceByUuid,
+    strictSpeed: bandwidthSortActive,
   });
 
   useEffect(() => {
