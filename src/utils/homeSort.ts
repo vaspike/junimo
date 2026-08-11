@@ -140,19 +140,3 @@ export function reconcileSpeedOrder(
   }
   return [...online, ...offline];
 }
-
-/**
- * 带宽快照排序(一次性):按当前实时带宽(up+down)降序冻结 uuid 顺序。
- * 离线节点恒定沉底。返回的 uuid 列表用于后续 reconcileSpeedOrder 冻结渲染顺序,
- * 之后不再动态重排——与 speed 维度的持续防抖排序语义不同。
- */
-export function snapshotBandwidthOrder(nodes: HomeNodeSummary[]): string[] {
-  return [...nodes]
-    .sort((a, b) => {
-      const aTotal = (a.netUp || 0) + (a.netDown || 0);
-      const bTotal = (b.netUp || 0) + (b.netDown || 0);
-      if (a.online !== b.online) return a.online ? -1 : 1;
-      return bTotal - aTotal;
-    })
-    .map((node) => node.uuid);
-}

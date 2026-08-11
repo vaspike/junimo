@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownWideNarrow, CircleDollarSign } from "lucide-react";
@@ -32,7 +32,7 @@ import {
   type HomeRegionOption,
 } from "@/utils/homeNodes";
 import { getDisplayRegionCode } from "@/utils/geo";
-import { reconcileSpeedOrder, snapshotBandwidthOrder } from "@/utils/homeSort";
+import type { HomeSortField } from "@/utils/homeSort";
 import { useHomeSort } from "@/hooks/useHomeSort";
 import { useHomeNodeOrder } from "@/hooks/useHomeNodeOrder";
 import { useHourlyClock } from "@/hooks/useClock";
@@ -134,6 +134,7 @@ function HomeOverviewCards({
   onWarmTraffic,
   onToggleBandwidthSort,
   bandwidthSortActive,
+  bandwidthSortDisabled,
 }: {
   overview: HomeOverview;
   costSummary: { remainingCny: number } | null;
@@ -151,6 +152,7 @@ function HomeOverviewCards({
   onWarmTraffic: () => void;
   onToggleBandwidthSort: () => void;
   bandwidthSortActive: boolean;
+  bandwidthSortDisabled: boolean;
 }) {
   const [trafficValue, trafficUnit] = formatBytes(
     overview.trafficUp + overview.trafficDown,
@@ -243,10 +245,13 @@ function HomeOverviewCards({
               bandwidthSortActive ? "恢复节点默认排序" : "按实时带宽排序节点"
             }
             aria-pressed={bandwidthSortActive}
+            disabled={bandwidthSortDisabled}
             title={
-              bandwidthSortActive
-                ? "已按实时带宽排序，点击恢复默认"
-                : "按实时带宽排序一次"
+              bandwidthSortDisabled
+                ? "未启用排序功能（主题设置 → 启用排序切换）"
+                : bandwidthSortActive
+                  ? "已按实时带宽排序，点击恢复默认"
+                  : "按实时带宽动态排序"
             }
             onClick={onToggleBandwidthSort}
           >
@@ -409,9 +414,6 @@ export function NodeGrid() {
   const sortDirection = sortEnabled ? sort.direction : themeSettings.homeSortDirection;
   const [selectedGroup, setSelectedGroup] = useState(HOME_ALL_GROUP);
   const [selectedRegion, setSelectedRegion] = useState(HOME_ALL_REGION);
-  // 带宽快照排序:点击「实时带宽」卡右上角按钮时,冻结当前按实时带宽降序的 uuid 顺序;
-  // 再次点击清空快照恢复原排序。冻结后不再动态重排(与 useHomeNodeOrder 的 speed 维度不同)。
-  const [bandwidthSnapshot, setBandwidthSnapshot] = useState<string[] | null>(null);
   useHomepagePingOverview(mode);
 
   // 摘要不含名称，先从完整 meta 解析主题隐藏列表，再统一过滤各类数据。
@@ -423,12 +425,18 @@ export function NodeGrid() {
       ),
     [me?.logged_in, nodes, hiddenUuids],
   );
-  // 点击「实时带宽」卡按钮:未激活时按当前带宽快照排序冻结;已激活时清空快照恢复原排序。
-  const toggleBandwidthSnapshot = useCallback(() => {
-    setBandwidthSnapshot((current) =>
-      current ? null : snapshotBandwidthOrder(visibleNodes),
-    );
-  }, [visibleNodes]);
+  // 点击「实时带宽」卡按钮:切换 speed(实时网速)动态排序。激活时再点恢复点击前的维度。
+  // 复用 useHomeSort 的成熟逻辑(滞回门 + 3 样本平滑 + 5s 重排),按钮只是快捷入口。
+  const prevSortFieldRef = useRef<HomeSortField | null>(null);
+  const toggleBandwidthSort = useCallback(() => {
+    if (sort.field === "speed") {
+      sort.setField(prevSortFieldRef.current ?? "default");
+      prevSortFieldRef.current = null;
+    } else {
+      prevSortFieldRef.current = sort.field;
+      sort.setField("speed");
+    }
+  }, [sort]);
   // 资产统计与卡片使用同一可见性规则，避免泄露隐藏节点信息。
   const visibleMeta = useMemo(
     () =>
@@ -585,13 +593,6 @@ export function NodeGrid() {
     nameByUuid,
     priceByUuid,
   });
-  // 带宽快照激活时覆盖渲染顺序:按冻结的 uuid 顺序重排,新节点追加末尾、离线沉底。
-  // 复用 reconcileSpeedOrder(冻结顺序 + 新节点追加 + 离线沉底),与 speed 维度语义一致;
-  // 但不再动态重排——顺序只在点击按钮那一刻冻结。
-  const renderNodes = useMemo(
-    () => (bandwidthSnapshot ? reconcileSpeedOrder(orderedNodes, bandwidthSnapshot) : orderedNodes),
-    [bandwidthSnapshot, orderedNodes],
-  );
 
   useEffect(() => {
     if (selectedGroup !== HOME_ALL_GROUP && !groupOptions.includes(selectedGroup)) {
@@ -624,8 +625,8 @@ export function NodeGrid() {
 
   // 卡片列表只随 UUID 集合/顺序变化；卡片内部各自订阅实时数据。
   const uuidsKey = useMemo(
-    () => renderNodes.map((node) => node.uuid).join(UUID_KEY_SEPARATOR),
-    [renderNodes],
+    () => orderedNodes.map((node) => node.uuid).join(UUID_KEY_SEPARATOR),
+    [orderedNodes],
   );
   const orderedUuids = useMemo(
     () => (uuidsKey ? uuidsKey.split(UUID_KEY_SEPARATOR) : []),
@@ -744,8 +745,9 @@ export function NodeGrid() {
               bandwidthRatingLabels={themeSettings.bandwidthRatingLabels}
               assetRatingLabels={themeSettings.assetRatingLabels}
               onWarmTraffic={warmTrafficPage}
-              onToggleBandwidthSort={toggleBandwidthSnapshot}
-              bandwidthSortActive={bandwidthSnapshot !== null}
+              onToggleBandwidthSort={toggleBandwidthSort}
+              bandwidthSortActive={sortEnabled && sort.field === "speed"}
+              bandwidthSortDisabled={!sortEnabled}
             />
           )}
         </>
