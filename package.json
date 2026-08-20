@@ -1,9 +1,9 @@
 {
-  "name": "lumina-pro",
+  "name": "junimo",
   "private": true,
-  "version": "1.3.0",
+  "version": "2.0.1",
   "type": "module",
-  "description": "lumina-pro",
+  "description": "junimo",
   "author": "Planck",
   "scripts": {
     "dev": "vite",
