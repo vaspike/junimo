@@ -167,7 +167,7 @@ export interface ThemeSettings {
   enableBackgroundImage?: boolean;
   /** 自定义背景图是否也在 farm（像素农场）主题下生效；false = farm 始终用自带的程序化场景。 */
   backgroundImageInFarm?: boolean;
-  /** 农场主题招牌漆色指派：颜色 id → 节点身份列表。未配置的节点用默认灰木色。 */
+  /** 农场主题招牌漆色指派：颜色 id → 节点身份列表。未配置的节点用默认木棕色。 */
   farmSignColors?: Record<string, unknown>;
   backgroundImage?: string;
   backgroundImageMobile?: string;

@@ -1801,7 +1801,7 @@ export function ThemeManage() {
             </div>
             <div className="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
               仅「像素农场」外观生效：展开一种漆色勾选节点，这些节点的招牌即漆成此色，
-              与 tag 颜色无关。一个节点只能属于一种漆色；未勾选的节点使用默认灰木色；
+              与 tag 颜色无关。一个节点只能属于一种漆色；未勾选的节点使用默认木棕色（与卡片木框同色）；
               离线节点显示为枯木色。
             </div>
           </div>

@@ -47,7 +47,7 @@ export function normalizeFarmSignColors(raw: unknown): FarmSignColorMap {
 
 /**
  * 解析单个节点的招牌颜色。一个节点被配进多个颜色时，按 FARM_SIGN_COLORS
- * 声明顺序取先命中的那个。未配置返回 null——默认灰木色由 CSS 兜底。
+ * 声明顺序取先命中的那个。未配置返回 null——默认木棕色由 CSS 兜底。
  */
 export function resolveFarmSignColorId(
   node: NodeInfo,

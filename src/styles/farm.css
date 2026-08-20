@@ -355,14 +355,14 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
 
 :root[data-appearance="farm"] {
   --farm-title-font: "Fusion Pixel 12px", var(--font-sans);
-  /* 木牌默认漆色 = 灰木；由卡片 data-accent（主题设置里按节点指派的招牌色）覆写 */
-  --farm-accent: #a08a6a;
-  --farm-accent-dark: #73604a;
+  /* 木牌默认漆色 = 木框同款棕色；由卡片 data-accent（主题设置里按节点指派的招牌色）覆写 */
+  --farm-accent: #a86a34;
+  --farm-accent-dark: #6f4220;
 }
 
 /* ---------------------------------------------------------- 卡片分色 -- */
 /* 内置招牌漆色（星露谷式漆色，够深以托住米白文字）。与 tag 颜色无关：
-   完全由主题设置「农场招牌颜色」按节点指派，未配置的节点保持默认灰木。
+   完全由主题设置「农场招牌颜色」按节点指派，未配置的节点保持默认木棕。
    色值与 src/utils/farmSign.ts 的 FARM_SIGN_COLORS 手工同步。 */
 :root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="green"] {
   --farm-accent: #6f9f43; --farm-accent-dark: #4d7030;
@@ -386,7 +386,7 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
   --farm-accent: #8668b4; --farm-accent-dark: #5e4783;
 }
 
-/* 离线 = 枯木色（比默认灰木更暗更朽，最后声明以压过 data-accent） */
+/* 离线 = 枯木色（比默认木棕更灰更朽，最后声明以压过 data-accent） */
 :root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card).is-offline {
   --farm-accent: #7d6f5e; --farm-accent-dark: #574b3d;
 }
