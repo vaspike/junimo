@@ -2,6 +2,7 @@
 Junimo是一款灵感来自`星露谷物语`的komari主题, 名称取自星露谷里那些住在农场上、默默帮你收菜(采集服务器数据)的小精灵。
 
 > Junimo是站在前人的肩膀上进行的实现, 感谢: [Komari-Theme-LuminaPlus](https://github.com/shanyang242/Komari-Theme-LuminaPlus)
+>
 > 因此Junimo继承了上游主题的大部分能力
 
 ## 预览
