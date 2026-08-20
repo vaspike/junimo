@@ -20,7 +20,7 @@ import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { formatBytes, formatOfflineDuration } from "@/utils/format";
+import { firstExplicitTagColor, formatBytes, formatOfflineDuration } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import { speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
 import { supportsFineHover } from "@/utils/mediaQuery";
@@ -723,7 +723,10 @@ export const CompactNodeCard = memo(function CompactNodeCard({
   const offlineDuration = isOffline ? formatOfflineDuration(model.offlineSince).full : null;
 
   return (
-    <article className={clsx("compact-node-card", isOffline && "is-offline")}>
+    <article
+      className={clsx("compact-node-card", isOffline && "is-offline")}
+      data-accent={firstExplicitTagColor(node.tags) || undefined}
+    >
       <CompactNodeHeader
         node={node}
         osName={osName}

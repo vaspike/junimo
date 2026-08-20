@@ -119,7 +119,7 @@ export interface HomepageMultiPingGroup {
 }
 
 export interface ThemeSettings {
-  defaultAppearance?: "system" | "light" | "dark";
+  defaultAppearance?: "system" | "light" | "dark" | "farm";
   desktopNodeViewMode?: "large" | "compact" | "mini" | "list";
   mobileNodeViewMode?: "large" | "compact" | "mini" | "list";
   enableAdminButton?: boolean;
@@ -165,6 +165,8 @@ export interface ThemeSettings {
   >;
   costRateApiUrl?: string;
   enableBackgroundImage?: boolean;
+  /** 自定义背景图是否也在 farm（像素农场）主题下生效；false = farm 始终用自带的程序化场景。 */
+  backgroundImageInFarm?: boolean;
   backgroundImage?: string;
   backgroundImageMobile?: string;
   backgroundAlignment?: string;

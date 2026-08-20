@@ -552,6 +552,13 @@ export function installDevMockApi() {
           enableHomepageMultiPing:
             new URLSearchParams(window.location.search).get("multiPing") === "1",
           homepageMultiPingTaskIds: [1, 2, 3],
+          // ?bg=1 时配置昼/夕双图背景，回归验证 farm 主题的场景切换与让位逻辑。
+          ...(new URLSearchParams(window.location.search).get("bg") === "1"
+            ? {
+                backgroundImage:
+                  "https://picsum.photos/seed/farm-day/1920/1080|https://picsum.photos/seed/farm-night/1920/1080",
+              }
+            : {}),
         },
       });
     }

@@ -11,6 +11,8 @@
 @import "./node-traffic-popover.css";
 @import "./os-logo.css";
 @import "./numeric.css";
+/* farm 主题最后导入：同优先级下靠后取胜，确保覆写卡片基底与悬浮控件 */
+@import "./farm.css";
 
 @theme {
   --font-sans:

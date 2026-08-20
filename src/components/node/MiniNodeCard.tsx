@@ -27,7 +27,7 @@ import {
   pingEmptyLabels,
 } from "./nodeCardShared";
 import { formatHealthBucketTooltip } from "./pingBucketText";
-import { formatBytes, formatOfflineDuration, type ByteRateDisplay } from "@/utils/format";
+import { firstExplicitTagColor, formatBytes, formatOfflineDuration, type ByteRateDisplay } from "@/utils/format";
 import type { NodeInfo, NodeMetrics, PingOverviewItem, PingOverviewBucket } from "@/types/komari";
 
 // 迷你卡固定为巡检布局，不跟随紧凑卡的可选指标开关；数据仍走共享模型。
@@ -439,7 +439,10 @@ export const MiniNodeCard = memo(function MiniNodeCard({
   const offlineDuration = isOffline ? formatOfflineDuration(model.offlineSince).full : null;
 
   return (
-    <article className={clsx("mini-node-card", isOffline && "is-offline")}>
+    <article
+      className={clsx("mini-node-card", isOffline && "is-offline")}
+      data-accent={firstExplicitTagColor(node.tags) || undefined}
+    >
       <MiniHeader
         node={node}
         osName={osName}

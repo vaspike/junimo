@@ -17,6 +17,7 @@ import {
   Rows3,
   Save,
   Search,
+  Sprout,
   Sun,
   SunMoon,
   Wallpaper,
@@ -86,6 +87,7 @@ const APPEARANCE_OPTIONS = [
   { value: "light", label: "浅色", icon: Sun },
   { value: "system", label: "跟随系统", icon: SunMoon },
   { value: "dark", label: "深色", icon: Moon },
+  { value: "farm", label: "像素农场", icon: Sprout },
 ] as const;
 const OVERVIEW_DENSITY_OPTIONS: Array<{ value: HomeOverviewDensity; label: string }> = [
   { value: "auto", label: "跟随视图" },
@@ -308,6 +310,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     ),
     costRateApiUrl: settings.costRateApiUrl,
     enableBackgroundImage: settings.enableBackgroundImage,
+    backgroundImageInFarm: settings.backgroundImageInFarm,
     backgroundImage: settings.backgroundImage,
     backgroundImageMobile: settings.backgroundImageMobile,
     backgroundAlignment: settings.backgroundAlignment,
@@ -1652,6 +1655,13 @@ export function ThemeManage() {
             checked={draft.enableBackgroundImage}
             onPatch={patch}
           />
+          <ToggleRow
+            field="backgroundImageInFarm"
+            title="在像素农场主题中生效"
+            desc="开启后，自定义背景图会替换农场主题自带的程序化场景（面板仍保持农场风格）；关闭则农场主题始终使用自己的场景与四季。"
+            checked={draft.backgroundImageInFarm}
+            onPatch={patch}
+          />
           <div className="grid gap-4 md:grid-cols-2">
             <label className="flex min-w-0 flex-col gap-2">
               <span className="text-[12px] font-medium text-[var(--text-secondary)]">
@@ -1664,7 +1674,7 @@ export function ThemeManage() {
                 className="surface-inset w-full px-3 py-2 text-[13px] outline-none"
               />
               <span className="text-[11px] text-[var(--text-tertiary)]">
-                留空则不显示背景图。可用 <code>浅色图|深色图</code> 为两种外观分别设置。
+                留空则不显示背景图。可用 <code>浅色图|深色图</code> 为两种外观分别设置（农场主题对应昼 / 夕场景）。
               </span>
             </label>
             <label className="flex min-w-0 flex-col gap-2">

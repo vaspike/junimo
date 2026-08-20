@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight, Grid3x3, LayoutGrid, List, Monitor, Palette, Rows3, Settings, SlidersHorizontal, Sun, Moon } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Grid3x3, LayoutGrid, List, Monitor, Palette, Rows3, Settings, SlidersHorizontal, Sprout, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useViewMode } from "@/hooks/useViewMode";
@@ -26,6 +26,7 @@ const APPEARANCE_OPTIONS = [
   { value: "light", icon: Sun, label: "浅色" },
   { value: "system", icon: Monitor, label: "跟随系统" },
   { value: "dark", icon: Moon, label: "深色" },
+  { value: "farm", icon: Sprout, label: "像素农场" },
 ] as const;
 
 export function FloatingControls({

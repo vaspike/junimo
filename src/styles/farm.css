@@ -1,0 +1,871 @@
+/* ==========================================================================
+   像素农场（farm）主题 —— 星露谷物语风格的内置 appearance。
+   挂载点：usePreferences 解析出 data-appearance="farm"，并按本地时间
+   （6:00–18:00 为昼）给出 data-farm-scene="day|dusk"。
+   原则：皮全部长在 CSS/token 层，不动任何组件结构与功能；
+   farm 下忽略自定义背景图与不透明度（见 applyBackgroundCache）。
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- 色板 -- */
+:root[data-appearance="farm"] {
+  /* 木框九宫格（48×48 SVG，slice 16 fill）：描边 #4a2c17 / 木色 #a86a34 /
+     高光 #c98a4e / 阴影 #6f4220 / 内槽 #7c4e26 / 羊皮纸芯 #f9e9c3，
+     四角阶梯像素圆角由 mask 切出。节点卡、总览卡、分组条共用。 */
+  --farm-frame-src: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cmask id='m'%3E%3Crect width='48' height='48' fill='%23fff'/%3E%3Crect x='0' y='0' width='6' height='2'/%3E%3Crect x='0' y='2' width='4' height='2'/%3E%3Crect x='0' y='4' width='2' height='2'/%3E%3Crect x='42' y='0' width='6' height='2'/%3E%3Crect x='44' y='2' width='4' height='2'/%3E%3Crect x='46' y='4' width='2' height='2'/%3E%3Crect x='0' y='46' width='6' height='2'/%3E%3Crect x='0' y='44' width='4' height='2'/%3E%3Crect x='0' y='42' width='2' height='2'/%3E%3Crect x='42' y='46' width='6' height='2'/%3E%3Crect x='44' y='44' width='4' height='2'/%3E%3Crect x='46' y='42' width='2' height='2'/%3E%3C/mask%3E%3Cg mask='url(%23m)'%3E%3Crect width='48' height='48' fill='%23a86a34'/%3E%3Crect x='6' y='0' width='36' height='2' fill='%234a2c17'/%3E%3Crect x='6' y='46' width='36' height='2' fill='%234a2c17'/%3E%3Crect x='0' y='6' width='2' height='36' fill='%234a2c17'/%3E%3Crect x='46' y='6' width='2' height='36' fill='%234a2c17'/%3E%3Crect x='4' y='2' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='2' y='4' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='42' y='2' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='44' y='4' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='4' y='44' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='2' y='42' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='42' y='44' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='44' y='42' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='6' y='2' width='36' height='2' fill='%23c98a4e'/%3E%3Crect x='2' y='6' width='2' height='36' fill='%23c98a4e'/%3E%3Crect x='6' y='44' width='36' height='2' fill='%236f4220'/%3E%3Crect x='44' y='6' width='2' height='36' fill='%236f4220'/%3E%3Crect x='12' y='7' width='10' height='2' fill='%238a5426'/%3E%3Crect x='28' y='10' width='12' height='2' fill='%238a5426'/%3E%3Crect x='12' y='38' width='12' height='2' fill='%238a5426'/%3E%3Crect x='7' y='14' width='2' height='10' fill='%238a5426'/%3E%3Crect x='39' y='22' width='2' height='10' fill='%238a5426'/%3E%3Crect x='0' y='14' width='48' height='2' fill='%237c4e26'/%3E%3Crect x='0' y='32' width='48' height='2' fill='%237c4e26'/%3E%3Crect x='14' y='0' width='2' height='48' fill='%237c4e26'/%3E%3Crect x='32' y='0' width='2' height='48' fill='%237c4e26'/%3E%3Crect x='16' y='16' width='16' height='16' fill='%23f9e9c3'/%3E%3C/g%3E%3C/svg%3E");
+  /* 天空底色兜底（场景画不出来时的退路） */
+  --bg-0: #63b4e6;
+
+  /* 羊皮纸表面 */
+  --surface: #f9e9c3;
+  --surface-elev: #fdf2d4;
+  --surface-sunken: #efddae;
+
+  /* 木质描边 */
+  --border: #8a5a2b;
+  --border-subtle: rgba(122, 78, 38, 0.28);
+  --border-strong: #6f4220;
+  --hairline: rgba(122, 78, 38, 0.22);
+
+  /* 棕调文字：羊皮纸上保持 ≥ 7:1 对比 */
+  --text-primary: #4a3220;
+  --text-secondary: #6d4f33;
+  --text-tertiary: #93764f;
+  --text-on-strong: #fff8e7;
+
+  --fill-secondary: rgba(107, 66, 32, 0.2);
+  --fill-tertiary: rgba(107, 66, 32, 0.1);
+
+  --hover-bg: #f3e2b2;
+
+  /* 指标语义色不变，只把色相调成星露谷式的暖饱和，避免与羊皮纸底打架 */
+  --progress-bg: #e3d0a0;
+  --progress-cpu: #4a90d9;
+  --progress-memory: #9b6bd6;
+  --progress-swap: #7a5fd0;
+  --progress-disk: #d9832b;
+  --progress-network: #5da85a;
+  --progress-load: #d96a9f;
+
+  --status-success: #58a447;
+  --status-warning: #d99a2b;
+  --status-error: #d64545;
+  --status-info: #4a90d9;
+  /* 延迟阶梯沿用 light 的绿→红，羊皮纸上同样清晰 */
+
+  /* 品牌强调换成叶绿色（Spinner / 主 CTA / 激活态） */
+  --accent-500: #58a447;
+  --accent-strong: #3f8a33;
+
+  --traffic-up: #4a90d9;
+  --traffic-down: #58a447;
+  --status-online: #58a447;
+  --status-offline: #d64545;
+
+  --ring: rgba(74, 144, 217, 0.45);
+
+  --canvas-glow: none;
+}
+
+/* 夕照：卡片保持羊皮纸（星露谷对话框夜间也不换纸色），只把表面微微压深 */
+:root[data-appearance="farm"][data-farm-scene="dusk"] {
+  --bg-0: #2c2450;
+  --surface: #f3e0b4;
+  --surface-elev: #f7e8c2;
+  --surface-sunken: #e8d3a0;
+  --hover-bg: #eedcae;
+  --progress-bg: #dec795;
+}
+
+/* -------------------------------------------------- 场景变量（昼/夕/四季） -- */
+/* 场景颜色全部走变量：昼/夕与四季只改 token，渐变结构只写一遍。 */
+:root[data-appearance="farm"] {
+  --farm-sky-top: #63b4e6;
+  --farm-sky-mid: #8fcdf0;
+  --farm-sky-low: #c4e9f7;
+  --farm-horizon: #ffe6a6;
+  --farm-hedge: #4c8a3e;
+  --farm-grass-hi: #7abf52;
+  --farm-grass-mid: #67ad45;
+  --farm-grass-low: #599c3d;
+  --farm-fence: #9c6a38;
+  --farm-fence-dark: #6f4220;
+  --farm-flower-a: #f2a7c3;
+  --farm-flower-b: #f7d774;
+  --farm-cloud: rgba(255, 255, 255, 0.95);
+  --farm-cloud-soft: rgba(255, 255, 255, 0.8);
+  --farm-sun: #ffe787;
+  --farm-sun-core: #fff3b0;
+  --farm-sun-glow: rgba(255, 240, 170, 0.55);
+  /* 飘落物：默认春（花瓣） */
+  --farm-ambient-a: rgba(242, 167, 195, 0.9);
+  --farm-ambient-b: rgba(247, 215, 116, 0.85);
+}
+/* 夏：深草、白花、绿叶 */
+:root[data-appearance="farm"][data-farm-season="summer"] {
+  --farm-hedge: #3f7a34;
+  --farm-grass-hi: #5fae3f;
+  --farm-grass-mid: #519636;
+  --farm-grass-low: #458231;
+  --farm-flower-a: #f7d774;
+  --farm-flower-b: #ffffff;
+  --farm-ambient-a: rgba(126, 191, 82, 0.9);
+  --farm-ambient-b: rgba(88, 164, 71, 0.85);
+}
+/* 秋：金草、橙红叶 */
+:root[data-appearance="farm"][data-farm-season="autumn"] {
+  --farm-hedge: #8a6a2c;
+  --farm-grass-hi: #c99a4a;
+  --farm-grass-mid: #b5853a;
+  --farm-grass-low: #9c7030;
+  --farm-flower-a: #e07a4f;
+  --farm-flower-b: #d9a03b;
+  --farm-ambient-a: rgba(224, 122, 79, 0.9);
+  --farm-ambient-b: rgba(201, 127, 58, 0.85);
+}
+/* 冬：雪原、雪花 */
+:root[data-appearance="farm"][data-farm-season="winter"] {
+  --farm-hedge: #8fa39a;
+  --farm-grass-hi: #e8eef0;
+  --farm-grass-mid: #d5dfe2;
+  --farm-grass-low: #c2ced2;
+  --farm-fence: #9a8a7a;
+  --farm-fence-dark: #7a6a5a;
+  --farm-flower-a: #ffffff;
+  --farm-flower-b: #d5e5ea;
+  --farm-ambient-a: rgba(255, 255, 255, 0.95);
+  --farm-ambient-b: rgba(230, 240, 245, 0.9);
+}
+/* 夕照场景变量（全年一致，覆写季节；卡片羊皮纸在上方 token 块单独压深） */
+:root[data-appearance="farm"][data-farm-scene="dusk"] {
+  --farm-sky-top: #2c2450;
+  --farm-sky-mid: #54356a;
+  --farm-sky-low: #8f4a63;
+  --farm-horizon: #ffc97e;
+  --farm-hedge: #2c5430;
+  --farm-grass-hi: #3f6e38;
+  --farm-grass-mid: #35602f;
+  --farm-grass-low: #2e5529;
+  --farm-fence: #4a3526;
+  --farm-fence-dark: #33241a;
+  --farm-cloud: rgba(247, 190, 150, 0.75);
+  --farm-cloud-soft: rgba(230, 170, 160, 0.65);
+  --farm-sun: #ffbf6a;
+  --farm-sun-core: #ffd98e;
+  --farm-sun-glow: rgba(255, 176, 92, 0.5);
+  /* 夜里不飘叶子，换成萤火虫 */
+  --farm-ambient-a: rgba(255, 232, 154, 0.95);
+  --farm-ambient-b: rgba(255, 214, 120, 0.85);
+}
+
+/* ------------------------------------------------------------ 场景背景 -- */
+/* 画在 body::before 上。站长配置了自定义背景图时（<html data-bg-image>，由
+   applyBackgroundCache / 首帧脚本写入），场景与飘落物整层让位——farm 只剩
+   面板/字体/图标皮。栅栏 = 两道 repeat-x 图层；花丛 = 草地上几朵像素花。 */
+html[data-appearance="farm"]:not([data-bg-image]) body::before {
+  background-image:
+    radial-gradient(circle 150px at 76% 15%, var(--farm-sun-glow) 0%, rgba(255, 240, 170, 0) 72%),
+    radial-gradient(circle 56px at 76% 15%, var(--farm-sun-core) 0%, var(--farm-sun) 98%, rgba(255, 231, 135, 0) 100%),
+    radial-gradient(ellipse 120px 30px at 16% 12%, var(--farm-cloud) 62%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(ellipse 150px 36px at 46% 7%, var(--farm-cloud-soft) 62%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(ellipse 90px 24px at 88% 26%, var(--farm-cloud-soft) 62%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(circle 3px at 6% 84%, var(--farm-flower-a) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2.5px at 12% 90%, var(--farm-flower-b) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 3px at 92% 82%, var(--farm-flower-b) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2.5px at 87% 92%, var(--farm-flower-a) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2.5px at 22% 95%, var(--farm-flower-a) 60%, rgba(0, 0, 0, 0) 62%),
+    /* 栅栏立柱 */
+    repeating-linear-gradient(to right,
+      rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 30px,
+      var(--farm-fence-dark) 30px, var(--farm-fence-dark) 36px),
+    /* 栅栏横杆 */
+    linear-gradient(var(--farm-fence), var(--farm-fence)),
+    linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 74%,
+      var(--farm-hedge) 74%, var(--farm-hedge) calc(74% + 16px),
+      var(--farm-grass-hi) calc(74% + 16px), var(--farm-grass-mid) 90%, var(--farm-grass-low) 100%),
+    linear-gradient(to bottom,
+      var(--farm-sky-top) 0%, var(--farm-sky-mid) 40%, var(--farm-sky-low) 60%,
+      var(--farm-horizon) 74%, var(--farm-horizon) 100%);
+  background-size:
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 20px,
+    100% 4px,
+    100% 100%, 100% 100%;
+  background-position:
+    center, center, center, center, center,
+    center, center, center, center, center,
+    0 calc(74% - 6px),
+    0 calc(74% + 2px),
+    center, center;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    repeat-x, repeat-x,
+    no-repeat, no-repeat;
+}
+
+/* 夕：星空 + 沉到地平线的落日。太阳画在地面层之下，底部被草地遮住。 */
+html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::before {
+  background-image:
+    radial-gradient(circle 2px at 12% 8%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(circle 1.5px at 28% 16%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(circle 2px at 52% 6%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(circle 1.5px at 68% 13%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(circle 2px at 85% 6%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(circle 1.5px at 40% 24%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(circle 190px at 50% 74%, var(--farm-sun-glow) 0%, rgba(255, 176, 92, 0) 72%),
+    radial-gradient(circle 62px at 50% 74%, var(--farm-sun-core) 0%, var(--farm-sun) 98%, rgba(255, 191, 106, 0) 100%),
+    radial-gradient(ellipse 130px 30px at 20% 14%, var(--farm-cloud) 62%, rgba(247, 190, 150, 0) 70%),
+    radial-gradient(ellipse 160px 36px at 62% 9%, var(--farm-cloud-soft) 62%, rgba(230, 170, 160, 0) 70%),
+    radial-gradient(ellipse 100px 24px at 90% 24%, var(--farm-cloud) 62%, rgba(247, 190, 150, 0) 70%),
+    repeating-linear-gradient(to right,
+      rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 30px,
+      var(--farm-fence-dark) 30px, var(--farm-fence-dark) 36px),
+    linear-gradient(var(--farm-fence), var(--farm-fence)),
+    linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 74%,
+      var(--farm-hedge) 74%, var(--farm-hedge) calc(74% + 16px),
+      var(--farm-grass-hi) calc(74% + 16px), var(--farm-grass-mid) 92%, var(--farm-grass-low) 100%),
+    linear-gradient(to bottom,
+      var(--farm-sky-top) 0%, var(--farm-sky-mid) 30%, var(--farm-sky-low) 50%,
+      #e87e4f 66%, var(--farm-horizon) 74%, var(--farm-horizon) 100%);
+  background-size:
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 20px,
+    100% 4px,
+    100% 100%, 100% 100%;
+  background-position:
+    center, center, center, center, center, center,
+    center, center, center, center, center,
+    0 calc(74% - 6px),
+    0 calc(74% + 2px),
+    center, center;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    repeat-x, repeat-x,
+    no-repeat, no-repeat;
+}
+
+/* ---------------------------------------------------------- 环境飘落物 -- */
+/* 画在 body::after（平时是可读性遮罩层，farm 无遮罩正好借用）。白天飘落物
+   随季节（春花瓣/夏叶/秋叶/冬雪），夜里是萤火虫。瓦片 520px 无限平铺，
+   动画只动 background-position（合成器友好）。 */
+html[data-appearance="farm"]:not([data-bg-image]) body::after {
+  background-image:
+    radial-gradient(circle 2.5px at 15% 20%, var(--farm-ambient-a) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2px at 45% 65%, var(--farm-ambient-b) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2.5px at 70% 35%, var(--farm-ambient-a) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2px at 90% 75%, var(--farm-ambient-b) 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle 2px at 30% 85%, var(--farm-ambient-a) 60%, rgba(0, 0, 0, 0) 62%);
+  background-size: 520px 520px;
+  background-repeat: repeat;
+  animation: farm-ambient-fall 46s linear infinite;
+}
+@keyframes farm-ambient-fall {
+  to {
+    background-position:
+      130px 520px, -90px 520px, 160px 520px, -140px 520px, 60px 520px;
+  }
+}
+/* 萤火虫：更亮更柔，缓慢漂游而非下落 */
+html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::after {
+  background-image:
+    radial-gradient(circle 3px at 18% 60%, var(--farm-ambient-a) 25%, rgba(255, 232, 154, 0) 70%),
+    radial-gradient(circle 2.5px at 55% 45%, var(--farm-ambient-b) 25%, rgba(255, 214, 120, 0) 70%),
+    radial-gradient(circle 3px at 80% 70%, var(--farm-ambient-a) 25%, rgba(255, 232, 154, 0) 70%),
+    radial-gradient(circle 2.5px at 35% 80%, var(--farm-ambient-b) 25%, rgba(255, 214, 120, 0) 70%);
+  background-size: 460px 460px;
+  animation: farm-ambient-drift 34s ease-in-out infinite alternate;
+}
+@keyframes farm-ambient-drift {
+  to {
+    background-position: 60px -30px, -50px 25px, 40px 40px, -35px -45px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-appearance="farm"] body::after {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------ 木框面板 -- */
+/* 星露谷对话框的灵魂是橙棕木框 + chunky 阶梯圆角 + 羊皮纸内芯。
+   用一张 48×48 的 SVG data URI 做 border-image 九宫格（slice 16 + fill），
+   大卡 / compact / mini 三种卡共用一个框，零组件改动。
+   框体色：描边 #4a2c17 / 木色 #a86a34 / 高光 #c98a4e / 阴影 #6f4220 /
+   内槽 #7c4e26 / 羊皮纸 #f9e9c3。 */
+:root[data-appearance="farm"] .server-card,
+:root[data-appearance="farm"] .compact-node-card,
+:root[data-appearance="farm"] .mini-node-card {
+  border: 12px solid transparent;
+  border-radius: 4px;
+  border-image-source: var(--farm-frame-src);
+  border-image-slice: 16 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  /* 羊皮纸由 border-image 的 fill 提供；背景只作叠加层，clip 到 padding-box
+     以免盖住木框。 */
+  background: transparent;
+  background-clip: padding-box;
+}
+
+/* 覆写基底的 hover 变色：不在木框上洗颜色，改为羊皮纸微微提亮 */
+:root[data-appearance="farm"] .server-card:hover,
+:root[data-appearance="farm"] .compact-node-card:hover,
+:root[data-appearance="farm"] .mini-node-card:hover {
+  background: rgba(255, 252, 240, 0.28);
+  border-color: transparent;
+}
+
+/* 离线卡：羊皮纸掺灰红，木框不变（枯萎彩蛋留到装饰阶段） */
+:root[data-appearance="farm"] .server-card.is-offline,
+:root[data-appearance="farm"] .compact-node-card.is-offline,
+:root[data-appearance="farm"] .mini-node-card.is-offline {
+  background: color-mix(in srgb, var(--status-offline) 9%, #e8dcc0);
+  border-color: transparent;
+}
+
+/* ------------------------------------------------------------ 周边组件 -- */
+/* 悬浮控制球：去玻璃拟态，换木牌式按钮 */
+:root[data-appearance="farm"] .control-button {
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 2px 0 #4a2c17;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: var(--text-secondary);
+}
+:root[data-appearance="farm"] .control-button:hover {
+  background: var(--surface-elev);
+  border-color: #4a2c17;
+  color: var(--text-primary);
+}
+:root[data-appearance="farm"] .control-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #4a2c17;
+}
+
+/* 内凹容器：换成木框内的凹槽质感 */
+:root[data-appearance="farm"] .surface-inset {
+  background: var(--surface-sunken);
+  border: 2px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+/* 站点标题：农场入口招牌（见下方 P3 节），不再需要随场景换色 */
+
+/* 总览卡与分组/地区条也套上木框，避免“只有节点卡是像素风”的割裂感 */
+:root[data-appearance="farm"] .overview-card,
+:root[data-appearance="farm"] .home-group-tabs,
+:root[data-appearance="farm"] .home-region-bar {
+  border: 10px solid transparent;
+  border-radius: 4px;
+  border-image-source: var(--farm-frame-src);
+  border-image-slice: 16 fill;
+  border-image-width: 10px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background: transparent;
+  background-clip: padding-box;
+  box-shadow: none;
+}
+/* 总览卡保留一点指标色氛围（掺进羊皮纸，不再洗白） */
+:root[data-appearance="farm"] .overview-card {
+  background:
+    radial-gradient(
+      120% 100% at 0% 0%,
+      color-mix(in srgb, var(--metric-accent) 7%, transparent) 0%,
+      transparent 52%
+    );
+}
+
+/* 滚动条：木质轨道 */
+:root[data-appearance="farm"] ::-webkit-scrollbar-thumb {
+  background: #b07a44;
+  border-radius: 3px;
+}
+:root[data-appearance="farm"] ::-webkit-scrollbar-thumb:hover {
+  background: #8a5a2b;
+}
+
+/* ==========================================================================
+   P2：像素字体 · 标题木牌 · 卡片分色 · 像素图标
+   ========================================================================== */
+
+/* 缝合像素字体（OFL，含简中），仅 farm 主题的标题使用；
+   fontsource 只有 latin 子集，故内置完整 zh_hans woff2（约 900KB，按需加载）。 */
+@font-face {
+  font-family: "Fusion Pixel 12px";
+  src: url("/fonts/fusion-pixel-12px-zh_hans.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root[data-appearance="farm"] {
+  --farm-title-font: "Fusion Pixel 12px", var(--font-sans);
+  /* 木牌默认漆色（深木色）；按网格顺序循环或由 data-accent（tag 色）覆写 */
+  --farm-accent: #8a5a2b;
+  --farm-accent-dark: #5f3d1c;
+}
+
+/* ---------------------------------------------------------- 卡片分色 -- */
+/* 无 tag 时按网格顺序循环上漆（星露谷式招牌漆色，够深以托住米白文字）。
+   卡片外有 div.min-w-0 包装，所以循环挂在 .node-grid 的格子序号上，--farm-accent 沿继承进卡片。 */
+:root[data-appearance="farm"] .node-grid > :nth-child(6n+1) {
+  --farm-accent: #69a03c; --farm-accent-dark: #4a7028;
+}
+:root[data-appearance="farm"] .node-grid > :nth-child(6n+2) {
+  --farm-accent: #4a86d8; --farm-accent-dark: #2f5ea8;
+}
+:root[data-appearance="farm"] .node-grid > :nth-child(6n+3) {
+  --farm-accent: #d97f36; --farm-accent-dark: #a85a20;
+}
+:root[data-appearance="farm"] .node-grid > :nth-child(6n+4) {
+  --farm-accent: #d86a9a; --farm-accent-dark: #a8456e;
+}
+:root[data-appearance="farm"] .node-grid > :nth-child(6n+5) {
+  --farm-accent: #3fa8a0; --farm-accent-dark: #2a756f;
+}
+:root[data-appearance="farm"] .node-grid > :nth-child(6n+6) {
+  --farm-accent: #8e6bc0; --farm-accent-dark: #5f448f;
+}
+
+/* tag 色优先：节点第一个 tag 的颜色映射为木牌漆色（与 tokens.css 的 tag 色系一致） */
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="ruby"], [data-accent="red"], [data-accent="tomato"], [data-accent="crimson"]) {
+  --farm-accent: #c94f42; --farm-accent-dark: #97392f;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="gold"], [data-accent="amber"], [data-accent="yellow"]) {
+  --farm-accent: #d99a2b; --farm-accent-dark: #a87620;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="orange"], [data-accent="bronze"], [data-accent="brown"]) {
+  --farm-accent: #d97f36; --farm-accent-dark: #a85a20;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="green"], [data-accent="grass"]) {
+  --farm-accent: #69a03c; --farm-accent-dark: #4a7028;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="mint"], [data-accent="jade"]) {
+  --farm-accent: #3fa08a; --farm-accent-dark: #2a7060;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="lime"] {
+  --farm-accent: #8db654; --farm-accent-dark: #648234;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="blue"], [data-accent="sky"], [data-accent="cyan"], [data-accent="teal"]) {
+  --farm-accent: #4a86d8; --farm-accent-dark: #2f5ea8;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="violet"], [data-accent="purple"], [data-accent="plum"], [data-accent="iris"], [data-accent="indigo"]) {
+  --farm-accent: #8e6bc0; --farm-accent-dark: #5f448f;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="pink"] {
+  --farm-accent: #d86a9a; --farm-accent-dark: #a8456e;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="slate"], [data-accent="gray"]) {
+  --farm-accent: #7a6a55; --farm-accent-dark: #55483a;
+}
+
+/* 离线 = 招牌掉漆（最后声明，压过循环与 data-accent） */
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card).is-offline {
+  --farm-accent: #a08a6a; --farm-accent-dark: #73604a;
+}
+
+/* ---------------------------------------------------------- 标题木牌 -- */
+/* 负 margin 把招牌挂到木框内沿（overflow:hidden 裁在 padding-box，不能越界更多） */
+:root[data-appearance="farm"] .server-card-title-row,
+:root[data-appearance="farm"] .compact-node-title-row,
+:root[data-appearance="farm"] .mini-node-title {
+  position: relative;
+  background: var(--farm-accent);
+  border: 2px solid var(--farm-accent-dark);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15),
+    2px 3px 0 rgba(74, 44, 23, 0.3);
+}
+:root[data-appearance="farm"] .server-card-title-row {
+  margin: -18px 0 4px -4px;
+  padding: 5px 10px 6px;
+}
+:root[data-appearance="farm"] .compact-node-title-row {
+  margin: -14px 0 4px -4px;
+  padding: 4px 9px 5px;
+}
+:root[data-appearance="farm"] .mini-node-title {
+  margin: -13px 0 2px -2px;
+  padding: 2px 7px 3px;
+}
+
+/* 招牌挂钉 */
+:root[data-appearance="farm"] .server-card-title-row::before,
+:root[data-appearance="farm"] .server-card-title-row::after,
+:root[data-appearance="farm"] .compact-node-title-row::before,
+:root[data-appearance="farm"] .compact-node-title-row::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  width: 4px;
+  height: 4px;
+  background: #4a2c17;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.35);
+}
+:root[data-appearance="farm"] .server-card-title-row::before,
+:root[data-appearance="farm"] .compact-node-title-row::before {
+  left: 4px;
+}
+:root[data-appearance="farm"] .server-card-title-row::after,
+:root[data-appearance="farm"] .compact-node-title-row::after {
+  right: 4px;
+}
+
+/* 招牌上的名字：像素体 + 米白 + 硬投影（星露谷对话框文字质感） */
+:root[data-appearance="farm"] .server-card-title-link,
+:root[data-appearance="farm"] .compact-node-title,
+:root[data-appearance="farm"] .mini-node-title,
+:root[data-appearance="farm"] .node-list-name {
+  color: #fff8e7;
+  font-family: var(--farm-title-font);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-shadow: 2px 2px 0 rgba(60, 35, 15, 0.6);
+}
+:root[data-appearance="farm"] .server-card-title-link {
+  font-size: 15px;
+}
+:root[data-appearance="farm"] .compact-node-title {
+  font-size: 14px;
+}
+:root[data-appearance="farm"] .mini-node-title {
+  font-size: 12px;
+}
+:root[data-appearance="farm"] .server-card-title-link:hover,
+:root[data-appearance="farm"] .compact-node-title:hover {
+  color: #ffffff;
+}
+/* 离线卡标题压过上面的红染色规则 */
+:root[data-appearance="farm"] .server-card.is-offline .server-card-title-link,
+:root[data-appearance="farm"] .server-card.is-offline .server-card-title-link:hover,
+:root[data-appearance="farm"] .compact-node-card.is-offline .compact-node-title,
+:root[data-appearance="farm"] .compact-node-card.is-offline .compact-node-title:hover,
+:root[data-appearance="farm"] .mini-node-card.is-offline .mini-node-title,
+:root[data-appearance="farm"] .mini-node-card.is-offline .mini-node-title:hover {
+  color: #efe6d2;
+}
+/* 列表视图的节点名不上木牌，像素体用棕字 */
+:root[data-appearance="farm"] .node-list-name {
+  color: var(--text-primary);
+  text-shadow: none;
+  font-size: 13px;
+}
+
+/* 卡角操作按钮：小木牌 */
+:root[data-appearance="farm"] :is(.server-card-detail-link, .node-traffic-trigger, .compact-node-detail-link, .mini-node-os) {
+  background: var(--surface-elev);
+  border: 2px solid var(--border-strong);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(74, 44, 23, 0.5);
+}
+:root[data-appearance="farm"] :is(.server-card-detail-link, .node-traffic-trigger, .compact-node-detail-link, .mini-node-os):hover {
+  background: var(--surface);
+  border-color: #4a2c17;
+}
+
+/* ---------------------------------------------------------- 像素图标 -- */
+/* CSS-only 换图标：把 lucide 的线稿隐藏，用 currentColor 填充元素盒，
+   再以 16×16 像素画 data URI 作 mask 剪出形状。图标尺寸统一拉到 16px
+   保证像素 1:1 不糊。只替换卡片/列表内部的图标，卡片外保留 lucide。 */
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover)
+  svg:is(.lucide-cpu, .lucide-memory-stick, .lucide-hard-drive, .lucide-gauge, .lucide-arrow-up, .lucide-arrow-down, .lucide-globe, .lucide-clock3, .lucide-unplug, .lucide-calendar, .lucide-refresh-cw, .lucide-circle-dollar-sign, .lucide-database, .lucide-network, .lucide-bar-chart3) {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover)
+  svg:is(.lucide-cpu, .lucide-memory-stick, .lucide-hard-drive, .lucide-gauge, .lucide-arrow-up, .lucide-arrow-down, .lucide-globe, .lucide-clock3, .lucide-unplug, .lucide-calendar, .lucide-refresh-cw, .lucide-circle-dollar-sign, .lucide-database, .lucide-network, .lucide-bar-chart3) * {
+  stroke: transparent !important;
+  fill: transparent !important;
+}
+
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-cpu {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M3 3h10v10H3zM6 6h4v4H6z'/%3E%3Cpath d='M5 1h2v2H5zM9 1h2v2H9zM5 13h2v2H5zM9 13h2v2H9zM1 5h2v2H1zM1 9h2v2H1zM13 5h2v2h-2zM13 9h2v2h-2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M3 3h10v10H3zM6 6h4v4H6z'/%3E%3Cpath d='M5 1h2v2H5zM9 1h2v2H9zM5 13h2v2H5zM9 13h2v2H9zM1 5h2v2H1zM1 9h2v2H1zM13 5h2v2h-2zM13 9h2v2h-2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-memory-stick {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 4h12v8H2zM4 6h2v2H4zM7 6h2v2H7zM10 6h2v2h-2z'/%3E%3Cpath d='M3 12h1v2H3zM5 12h1v2H5zM7 12h1v2H7zM9 12h1v2H9zM11 12h1v2h-1z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 4h12v8H2zM4 6h2v2H4zM7 6h2v2H7zM10 6h2v2h-2z'/%3E%3Cpath d='M3 12h1v2H3zM5 12h1v2H5zM7 12h1v2H7zM9 12h1v2H9zM11 12h1v2h-1z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-hard-drive {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 4h12v8H2zM4 5h8v2H4zM11 9h1v1h-1z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 4h12v8H2zM4 5h8v2H4zM11 9h1v1h-1z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-gauge {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h3v4H2zM6 7h3v7H6zM11 4h3v10h-3z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h3v4H2zM6 7h3v7H6zM11 4h3v10h-3z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-arrow-up {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7 2h2v2H5v2H3v2h4v6h2V8h4V6h-2V4H9V2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7 2h2v2H5v2H3v2h4v6h2V8h4V6h-2V4H9V2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-arrow-down {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7 14h2v-2H5v-2H3V8h4V2h2v6h4v2h-2v2H9v2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7 14h2v-2H5v-2H3V8h4V2h2v6h4v2h-2v2H9v2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-globe {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-clock3 {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM7 4h2v4h3v2H7z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM7 4h2v4h3v2H7z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-unplug {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10 1h2v3h-2zM13 4h2v2h-2zM8 4h5v5H8zM5 9h2v2H5zM3 11h2v2H3z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10 1h2v3h-2zM13 4h2v2h-2zM8 4h5v5H8zM5 9h2v2H5zM3 11h2v2H3z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-calendar {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 3h12v11H2zM2 6h12v1H2z'/%3E%3Cpath d='M4 1h2v3H4zM10 1h2v3h-2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 3h12v11H2zM2 6h12v1H2z'/%3E%3Cpath d='M4 1h2v3H4zM10 1h2v3h-2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-refresh-cw {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM6 5h4v1h1v4h-1v1H6v-1H5V6h1zM12 6h2v3h-2z'/%3E%3Cpath d='M10 1h4v1h1v1h1v3h-2V4h-1V3h-2V2h-2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM6 5h4v1h1v4h-1v1H6v-1H5V6h1zM12 6h2v3h-2z'/%3E%3Cpath d='M10 1h4v1h1v1h1v3h-2V4h-1V3h-2V2h-2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-circle-dollar-sign {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM7 4h2v8H7zM5 6h6v2H5zM5 9h6v2H5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM7 4h2v8H7zM5 6h6v2H5zM5 9h6v2H5z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-database {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M3 2h10v1h1v1h1v9h-1v1h-1v1H3v-1H2v-1H1V5h1V4h1V2zM1 7h14v1H1zM1 10h14v1H1z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M3 2h10v1h1v1h1v9h-1v1h-1v1H3v-1H2v-1H1V5h1V4h1V2zM1 7h14v1H1zM1 10h14v1H1z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-network {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 1h4v3H6zM7 4h2v3H7zM7 7h2v2H7zM4 9h3v1H4zM4 9h1v2H4zM9 9h3v1H9zM11 9h1v2h-1zM1 11h4v4H1zM11 11h4v4h-4z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 1h4v3H6zM7 4h2v3H7zM7 7h2v2H7zM4 9h3v1H4zM4 9h1v2H4zM9 9h3v1H9zM11 9h1v2h-1zM1 11h4v4H1zM11 11h4v4h-4z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card, .node-list, .node-traffic-popover) svg.lucide-bar-chart3 {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h2v5H3zM7 5h2v8H7zM11 10h2v3h-2zM2 14h12v1H2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h2v5H3zM7 5h2v8H7zM11 10h2v3h-2zM2 14h12v1H2z'/%3E%3C/svg%3E");
+}
+
+/* ==========================================================================
+   P3：农场入口招牌（站点名）· 物品栏式悬浮控件（hotbar）
+   ========================================================================== */
+
+/* ------------------------------------------------------------ 入口招牌 -- */
+/* 站点名 = 农场门口挂的木牌：木板底 + 挂钉绳 + 像素字。自带底色，
+   昼/夕场景下都可读。pointer-events 原本就是 none，纯装饰安全。 */
+:root[data-appearance="farm"] .home-brand-title {
+  padding: 7px 14px 8px;
+  color: #fff8e7;
+  font-family: var(--farm-title-font);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 rgba(60, 35, 15, 0.6);
+  background: linear-gradient(to bottom, #b5773c, #9c5f2e);
+  border: 2px solid #4a2c17;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+    2px 3px 0 rgba(60, 35, 15, 0.35);
+}
+/* 挂绳 + 钉：两根 2px 木钉线从牌子顶端向上 */
+:root[data-appearance="farm"] .home-brand::before,
+:root[data-appearance="farm"] .home-brand::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 6px;
+  height: 18px;
+  background:
+    radial-gradient(circle 3px at 50% 15px, #3d2412 60%, rgba(0, 0, 0, 0) 62%),
+    linear-gradient(#6b4423, #6b4423);
+  background-size: 6px 6px, 2px 14px;
+  background-position: center bottom, center top;
+  background-repeat: no-repeat;
+}
+:root[data-appearance="farm"] .home-brand::before {
+  left: 16px;
+}
+:root[data-appearance="farm"] .home-brand::after {
+  right: 16px;
+}
+
+/* ------------------------------------------------------------ 物品栏 -- */
+/* 展开的控制条 = 星露谷物品栏：整条长木框，按钮是物品格，选中格金色高亮。 */
+:root[data-appearance="farm"] .floating-controls-actions {
+  gap: 4px;
+  padding: 4px;
+  border: 6px solid transparent;
+  border-radius: 4px;
+  border-image-source: var(--farm-frame-src);
+  border-image-slice: 16 fill;
+  border-image-width: 6px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+}
+
+/* 物品格：羊皮纸方槽 + 深棕内描边 */
+:root[data-appearance="farm"] .floating-controls .control-button {
+  border: 2px solid #6f4220;
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: inset 0 2px 0 rgba(74, 44, 23, 0.15);
+  color: var(--text-secondary);
+}
+:root[data-appearance="farm"] .floating-controls .control-button:hover {
+  background: var(--surface-elev);
+  border-color: #4a2c17;
+  color: var(--text-primary);
+}
+:root[data-appearance="farm"] .floating-controls .control-button:active {
+  transform: none;
+  box-shadow: inset 0 2px 0 rgba(74, 44, 23, 0.3);
+}
+/* 选中物品格：金色高亮框 */
+:root[data-appearance="farm"] .floating-controls .control-toggle.is-active {
+  background: var(--surface-elev);
+  border-color: #b4762a;
+  box-shadow: inset 0 0 0 2px #f0c35c;
+  color: var(--text-primary);
+}
+
+/* 触发钮 = 背包/工具箱：木色方块（与其他格的羊皮纸区分） */
+:root[data-appearance="farm"] .floating-controls-trigger {
+  background: linear-gradient(to bottom, #b5773c, #9c5f2e);
+  border: 2px solid #4a2c17;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    2px 3px 0 rgba(60, 35, 15, 0.35);
+  color: #fff8e7;
+}
+:root[data-appearance="farm"] .floating-controls-trigger:hover {
+  background: linear-gradient(to bottom, #c1844a, #a86a34);
+  border-color: #3d2412;
+  color: #ffffff;
+}
+
+/* 控制条图标像素化（与卡片同一套 mask 技术；按钮里本来就是 16px，1:1 不糊） */
+:root[data-appearance="farm"] .floating-controls
+  svg:is(.lucide-sun, .lucide-moon, .lucide-monitor, .lucide-sprout, .lucide-palette, .lucide-settings, .lucide-sliders-horizontal, .lucide-chevron-left, .lucide-chevron-right, .lucide-layout-grid, .lucide-rows-3, .lucide-grid-3x3, .lucide-list) {
+  background: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+:root[data-appearance="farm"] .floating-controls
+  svg:is(.lucide-sun, .lucide-moon, .lucide-monitor, .lucide-sprout, .lucide-palette, .lucide-settings, .lucide-sliders-horizontal, .lucide-chevron-left, .lucide-chevron-right, .lucide-layout-grid, .lucide-rows-3, .lucide-grid-3x3, .lucide-list) * {
+  stroke: transparent !important;
+  fill: transparent !important;
+}
+
+:root[data-appearance="farm"] .floating-controls svg.lucide-sun {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 5h6v6H5zM7 0h2v4H7zM7 12h2v4H7zM0 7h4v2H0zM12 7h4v2h-4z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 5h6v6H5zM7 0h2v4H7zM7 12h2v4H7zM0 7h4v2H0zM12 7h4v2h-4z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-moon {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 1h5v1h2v2h1v2h1v5h-1v2h-2v1h-1v1H6v-1H4v-1H3v-2H2V6h1V4h1V3h1zM8 3h3v1h1v1h1v5h-1v1h-1v1H8v-1H7v-1H6V6h1V5h1z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 1h5v1h2v2h1v2h1v5h-1v2h-2v1h-1v1H6v-1H4v-1H3v-2H2V6h1V4h1V3h1zM8 3h3v1h1v1h1v5h-1v1h-1v1H8v-1H7v-1H6V6h1V5h1z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-monitor {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 2h12v9H2zM4 4h8v5H4z'/%3E%3Cpath d='M7 12h2v2H7zM5 14h6v1H5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 2h12v9H2zM4 4h8v5H4z'/%3E%3Cpath d='M7 12h2v2H7zM5 14h6v1H5z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-sprout {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 3h4v3H3zM2 4h1v2H2zM9 3h4v3H9zM13 4h1v2h-1zM5 6h3v2H5zM8 6h3v2H8zM7 8h2v7H7zM5 15h6v1H5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 3h4v3H3zM2 4h1v2H2zM9 3h4v3H9zM13 4h1v2h-1zM5 6h3v2H5zM8 6h3v2H8zM7 8h2v7H7zM5 15h6v1H5z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-palette {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM5 5h2v2H5zM9 4h2v2H9zM4 8h2v2H4zM10 10h4v4h-4z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M5 2h6v1h2v2h1v6h-1v2h-2v1H5v-1H3v-2H2V5h1V3h2zM5 5h2v2H5zM9 4h2v2H9zM4 8h2v2H4zM10 10h4v4h-4z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-settings {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4 4h8v8H4zM7 7h2v2H7z'/%3E%3Cpath d='M7 1h2v3H7zM7 12h2v3H7zM1 7h3v2H1zM12 7h3v2h-2zM3 3h2v2H3zM11 3h2v2h-2zM3 11h2v2H3zM11 11h2v2h-2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4 4h8v8H4zM7 7h2v2H7z'/%3E%3Cpath d='M7 1h2v3H7zM7 12h2v3H7zM1 7h3v2H1zM12 7h3v2h-2zM3 3h2v2H3zM11 3h2v2h-2zM3 11h2v2H3zM11 11h2v2h-2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-sliders-horizontal {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 4h12v1H2zM2 8h12v1H2zM2 12h12v1H2zM5 3h2v3H5zM10 7h2v3h-2zM4 11h2v3H4z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 4h12v1H2zM2 8h12v1H2zM2 12h12v1H2zM5 3h2v3H5zM10 7h2v3h-2zM4 11h2v3H4z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-chevron-left {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 7h2v2H3zM5 5h2v2H5zM5 9h2v2H5zM7 3h2v2H7zM7 11h2v2H7zM9 1h2v2H9zM9 13h2v2H9z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 7h2v2H3zM5 5h2v2H5zM5 9h2v2H5zM7 3h2v2H7zM7 11h2v2H7zM9 1h2v2H9zM9 13h2v2H9z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-chevron-right {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11 7h2v2h-2zM9 5h2v2H9zM9 9h2v2H9zM7 3h2v2H7zM7 11h2v2H7zM5 1h2v2H5zM5 13h2v2H5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11 7h2v2h-2zM9 5h2v2H9zM9 9h2v2H9zM7 3h2v2H7zM7 11h2v2H7zM5 1h2v2H5zM5 13h2v2H5z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-layout-grid {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-rows-3 {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h12v3H2zM2 7h12v3H2zM2 12h12v3H2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h12v3H2zM2 7h12v3H2zM2 12h12v3H2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-grid-3x3 {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h2v2H2zM7 2h2v2H7zM12 2h2v2h-2zM2 7h2v2H2zM7 7h2v2H7zM12 7h2v2h-2zM2 12h2v2H2zM7 12h2v2H7zM12 12h2v2h-2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h2v2H2zM7 2h2v2H7zM12 2h2v2h-2zM2 7h2v2H2zM7 7h2v2H7zM12 7h2v2h-2zM2 12h2v2H2zM7 12h2v2H7zM12 12h2v2h-2z'/%3E%3C/svg%3E");
+}
+:root[data-appearance="farm"] .floating-controls svg.lucide-list {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3h2v2H1zM5 3h10v2H5zM1 7h2v2H1zM5 7h10v2H5zM1 11h2v2H1zM5 11h10v2H5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3h2v2H1zM5 3h10v2H5zM1 7h2v2H1zM5 7h10v2H5zM1 11h2v2H1zM5 11h10v2H5z'/%3E%3C/svg%3E");
+}
+
+/* ==========================================================================
+   P3b：离线枯萎盆栽 · 详情页木框 · 返回木牌
+   ========================================================================== */
+
+/* 离线彩蛋：卡角一盆枯萎的像素盆栽（仅大卡/小卡，mini 太小放不下）。 */
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card).is-offline::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  width: 20px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24'%3E%3Crect x='9' y='8' width='2' height='7' fill='%237a6a4a'/%3E%3Crect x='11' y='8' width='3' height='2' fill='%237a6a4a'/%3E%3Crect x='4' y='10' width='5' height='2' fill='%238a7a5a'/%3E%3Crect x='14' y='9' width='3' height='2' fill='%238a7a5a'/%3E%3Crect x='4' y='14' width='12' height='3' fill='%238a4a2a'/%3E%3Crect x='6' y='16' width='8' height='1' fill='%235f3d1c'/%3E%3Crect x='5' y='17' width='10' height='6' fill='%23a85f38'/%3E%3Crect x='5' y='21' width='10' height='2' fill='%237a3f24'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Instance/资产管理等面板统一套木框 */
+:root[data-appearance="farm"] .instance-panel {
+  border: 10px solid transparent;
+  border-radius: 4px;
+  border-image-source: var(--farm-frame-src);
+  border-image-slice: 16 fill;
+  border-image-width: 10px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background: transparent;
+  background-clip: padding-box;
+}
+
+/* 详情页「返回」= 小木牌 */
+:root[data-appearance="farm"] .instance-page-back {
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 4px 12px;
+  box-shadow: 0 2px 0 #4a2c17;
+}
+:root[data-appearance="farm"] .instance-page-back:hover {
+  background: var(--surface-elev);
+  border-color: #4a2c17;
+}

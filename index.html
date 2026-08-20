@@ -23,7 +23,7 @@
     <meta name="description" content="A Komari monitor theme." />
     <script>
       (() => {
-        const appearances = new Set(["system", "light", "dark"]);
+        const appearances = new Set(["system", "light", "dark", "farm"]);
         const readAppearance = (key) => {
           const raw = localStorage.getItem(key);
           if (raw == null) return null;
@@ -50,9 +50,36 @@
               : "light"
             : appearance;
         document.documentElement.dataset.appearance = resolved;
-        document.documentElement.style.colorScheme = resolved;
+        // farm 主题的昼/夕场景按本地时间（6:00–18:00 为昼）划分，季节按真实月份，
+        // 与 usePreferences 保持一致。
+        let farmScene = null;
+        if (resolved === "farm") {
+          const now = new Date();
+          const hour = now.getHours();
+          farmScene = hour >= 6 && hour < 18 ? "day" : "dusk";
+          document.documentElement.dataset.farmScene = farmScene;
+          const month = now.getMonth();
+          document.documentElement.dataset.farmSeason =
+            month >= 2 && month <= 4
+              ? "spring"
+              : month >= 5 && month <= 7
+                ? "summer"
+                : month >= 8 && month <= 10
+                  ? "autumn"
+                  : "winter";
+        }
+        document.documentElement.style.colorScheme = resolved === "dark" ? "dark" : "light";
         const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.content = resolved === "dark" ? "#000000" : "#F5F5F7";
+        if (meta) {
+          meta.content =
+            resolved === "dark"
+              ? "#000000"
+              : resolved === "farm"
+                ? farmScene === "dusk"
+                  ? "#2c2450"
+                  : "#63b4e6"
+                : "#F5F5F7";
+        }
 
         try {
           const rawDepth = localStorage.getItem("komaritheme:dark-depth");
@@ -76,7 +103,7 @@
           const rawBg = localStorage.getItem("komaritheme:bg");
           if (rawBg) {
             const bg = JSON.parse(rawBg);
-            if (bg && bg.v === 1) {
+            if (bg && bg.v === 1 && !(resolved === "farm" && bg.farm === false)) {
               const sizes = new Set(["cover", "contain", "auto"]);
               const positions = new Set(["top", "center", "bottom"]);
               const parseImage = (value) =>
@@ -84,7 +111,9 @@
                 (value === "none" || /^url\("[^\"'`()<>\\\s]+"\)$/.test(value))
                   ? value
                   : null;
-              const dark = resolved === "dark";
+              // farm 的「浅色|深色」双图映射到昼/夕场景（与 applyBackgroundCache 一致）。
+              const dark =
+                resolved === "dark" || (resolved === "farm" && farmScene === "dusk");
               const desktop = parseImage(dark ? bg.darkDesktop : bg.lightDesktop) ?? "none";
               const mobile = parseImage(dark ? bg.darkMobile : bg.lightMobile) ?? desktop;
               const parsedAlpha =
@@ -110,6 +139,8 @@
               } else {
                 style.removeProperty("--bg-scrim");
               }
+              // farm 主题据此关闭程序化场景（与 applyBackgroundCache 一致）。
+              document.documentElement.dataset.bgImage = "1";
             }
           }
         } catch {}

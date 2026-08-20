@@ -20,7 +20,7 @@ import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { formatBytes, formatOfflineDuration } from "@/utils/format";
+import { firstExplicitTagColor, formatBytes, formatOfflineDuration } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import {
   speedRateColor,
@@ -108,6 +108,7 @@ export const NodeCard = memo(function NodeCard({
   return (
     <article
       className={clsx("server-card", isOffline && "is-offline")}
+      data-accent={firstExplicitTagColor(node.tags) || undefined}
     >
       <div className="server-card-content">
         <NodeCardHeader

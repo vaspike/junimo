@@ -13,6 +13,7 @@ import type uPlot from "uplot";
 import { ArrowDown, ArrowUp, Cpu, Gauge, HardDrive, MemoryStick, Network, RefreshCw, Workflow } from "lucide-react";
 import { useLoadRecords } from "@/hooks/useRecords";
 import { useNodeMeta, useNodeMetrics } from "@/hooks/useNode";
+import type { ResolvedAppearance } from "@/utils/background";
 import { InstancePanel, InstanceChartLoading } from "./InstancePanel";
 import {
   buildChartTooltipHooks,
@@ -189,7 +190,7 @@ function buildBaseOptions({
   title: string;
   keys: string[];
   colors: string[];
-  resolvedAppearance: "light" | "dark";
+  resolvedAppearance: ResolvedAppearance;
   rangeHours: number;
   spanGaps?: boolean;
   axisKind: "percent" | "network" | "count";
@@ -279,7 +280,7 @@ const ChartCard = memo(function ChartCard({
   points: ChartPoint[];
   keys: string[];
   colors: string[];
-  resolvedAppearance: "light" | "dark";
+  resolvedAppearance: ResolvedAppearance;
   rangeHours: number;
   unit?: string;
   spanGaps?: boolean;

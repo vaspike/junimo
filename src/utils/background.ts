@@ -91,6 +91,8 @@ const BACKGROUND_CACHE_KEY = "komaritheme:bg";
 
 interface BackgroundSettingsInput {
   enableBackgroundImage: boolean;
+  /** 缺省视为 true：自定义背景图在 farm 主题下也生效。 */
+  backgroundImageInFarm?: boolean;
   backgroundImage: string;
   backgroundImageMobile: string;
   backgroundAlignment: string;
@@ -104,6 +106,8 @@ interface BackgroundCache {
   position: string;
   alpha: string;
   scrim: string;
+  /** false = farm（像素农场）主题下不应用此背景图，让位给程序化场景。旧缓存无此字段，按 true 处理。 */
+  farm: boolean;
   lightDesktop: string;
   lightMobile: string;
   darkDesktop: string;
@@ -130,6 +134,7 @@ export function buildBackgroundCache(settings: BackgroundSettingsInput): Backgro
     size,
     position,
     alpha: String(normalizeSurfaceOpacity(settings.surfaceOpacity)),
+    farm: settings.backgroundImageInFarm !== false,
     scrim:
       scrimPct > 0
         ? `color-mix(in srgb, var(--bg-0) ${scrimPct}%, transparent)`
@@ -154,14 +159,20 @@ const BACKGROUND_VAR_NAMES = [
 export function applyBackgroundCache(
   cache: BackgroundCache | null,
   appearance: ResolvedAppearance,
+  farmScene?: "day" | "dusk" | null,
 ): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  if (!cache) {
+  // farm 主题且站长关闭了「背景图在农场主题中生效」时，等同无缓存：
+  // 移除变量，让 farm.css 的程序化场景接管 body::before。
+  if (!cache || (appearance === "farm" && cache.farm === false)) {
     for (const name of BACKGROUND_VAR_NAMES) root.style.removeProperty(name);
+    delete root.dataset.bgImage;
     return;
   }
-  const dark = appearance === "dark";
+  // farm 的「浅色|深色」双图映射到昼/夕场景：昼用浅色图，夕用深色图。
+  const dark =
+    appearance === "dark" || (appearance === "farm" && farmScene === "dusk");
   const desktop = dark ? cache.darkDesktop : cache.lightDesktop;
   const mobile = (dark ? cache.darkMobile : cache.lightMobile) || desktop;
   root.style.setProperty("--bg-image-desktop", desktop);
@@ -171,6 +182,8 @@ export function applyBackgroundCache(
   root.style.setProperty("--surface-alpha", cache.alpha);
   if (cache.scrim) root.style.setProperty("--bg-scrim", cache.scrim);
   else root.style.removeProperty("--bg-scrim");
+  // farm 主题用这个属性关掉程序化场景（自定义背景图优先），见 farm.css。
+  root.dataset.bgImage = "1";
 }
 
 export function persistBackgroundCache(cache: BackgroundCache | null): void {

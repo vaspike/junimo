@@ -153,6 +153,18 @@ describe("buildBackgroundCache", () => {
     expect(cache?.darkMobile).toBe('url("/dark.webp")');
   });
 
+  it("marks farm applicability, defaulting to true", () => {
+    // 默认（含旧调用方不传该字段）= 自定义背景图在 farm 主题下同样生效
+    expect(buildBackgroundCache({ ...base, backgroundImage: "/a.webp" })?.farm).toBe(true);
+    expect(
+      buildBackgroundCache({
+        ...base,
+        backgroundImage: "/a.webp",
+        backgroundImageInFarm: false,
+      })?.farm,
+    ).toBe(false);
+  });
+
   it("omits the scrim at full opacity but includes it when transparent", () => {
     const solid = buildBackgroundCache({ ...base, backgroundImage: "/a.webp" });
     expect(solid?.scrim).toBe("");

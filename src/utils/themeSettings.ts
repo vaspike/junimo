@@ -30,7 +30,9 @@ import {
   type HomepagePingTaskBindings,
 } from "@/utils/pingTasks";
 
-export type Appearance = "system" | "light" | "dark";
+export type Appearance = "system" | "light" | "dark" | "farm";
+/** farm 主题的场景：6:00–18:00 为昼，其余为夕（含夜晚）。 */
+export type FarmScene = "day" | "dusk";
 export type NodeViewMode = "large" | "compact" | "mini" | "list";
 export type HomeOverviewDensity = "auto" | "full" | "compact";
 
@@ -90,6 +92,7 @@ export interface ResolvedThemeSettings {
   costPremiums: Record<string, CostPremiumEntry>;
   costRateApiUrl: string;
   enableBackgroundImage: boolean;
+  backgroundImageInFarm: boolean;
   backgroundImage: string;
   backgroundImageMobile: string;
   backgroundAlignment: string;
@@ -136,6 +139,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   costPremiums: {},
   costRateApiUrl: DEFAULT_COST_RATE_API_URL,
   enableBackgroundImage: true,
+  backgroundImageInFarm: true,
   backgroundImage: "",
   backgroundImageMobile: "",
   backgroundAlignment: DEFAULT_BACKGROUND_ALIGNMENT,
@@ -143,7 +147,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
 };
 
 export function isAppearance(value: unknown): value is Appearance {
-  return value === "system" || value === "light" || value === "dark";
+  return value === "system" || value === "light" || value === "dark" || value === "farm";
 }
 
 function normalizeAppearance(
@@ -262,6 +266,8 @@ export function normalizeThemeSettings(
     costRateApiUrl: normalizeCostRateApiUrl(settings?.costRateApiUrl),
     // 默认开:让已配置背景图的存量站点升级后行为不变;关闭 = 保留 URL 但不加载背景图。
     enableBackgroundImage: enabledUnlessFalse(settings?.enableBackgroundImage),
+    // 默认生效：与已发布行为一致；站长可关掉让 farm 始终用自己的场景。
+    backgroundImageInFarm: enabledUnlessFalse(settings?.backgroundImageInFarm),
     backgroundImage: normalizeBackgroundUrl(settings?.backgroundImage),
     backgroundImageMobile: normalizeBackgroundUrl(settings?.backgroundImageMobile),
     backgroundAlignment: normalizeBackgroundAlignment(settings?.backgroundAlignment),
