@@ -20,7 +20,8 @@ import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { firstExplicitTagColor, formatBytes, formatOfflineDuration } from "@/utils/format";
+import { formatBytes, formatOfflineDuration } from "@/utils/format";
+import { resolveFarmSignColorId } from "@/utils/farmSign";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import {
   speedRateColor,
@@ -104,11 +105,13 @@ export const NodeCard = memo(function NodeCard({
   } = model;
   const showConnections = themeSettings.isReady && themeSettings.showConnections;
   const offlineDuration = isOffline ? formatOfflineDuration(offlineSince).full : null;
+  // 农场主题招牌漆色：只看主题设置的按节点指派，与 tag 颜色无关。
+  const signColor = resolveFarmSignColorId(node, themeSettings.farmSignColors);
 
   return (
     <article
       className={clsx("server-card", isOffline && "is-offline")}
-      data-accent={firstExplicitTagColor(node.tags) || undefined}
+      data-accent={signColor ?? undefined}
     >
       <div className="server-card-content">
         <NodeCardHeader

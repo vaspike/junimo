@@ -559,6 +559,14 @@ export function installDevMockApi() {
                   "https://picsum.photos/seed/farm-day/1920/1080|https://picsum.photos/seed/farm-night/1920/1080",
               }
             : {}),
+          // 农场招牌漆色演示：几种颜色各指派一个节点，其余保持默认灰木。
+          farmSignColors: {
+            green: ["Tokyo Edge"],
+            blue: ["Singapore API"],
+            red: ["Frankfurt DB"],
+            pink: ["New York Worker"],
+            honey: ["Hong Kong Cache"],
+          },
         },
       });
     }

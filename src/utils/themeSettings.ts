@@ -14,6 +14,10 @@ import {
   type CostPremiumEntry,
 } from "@/utils/cost";
 import { normalizeNodeIdentityList } from "@/utils/nodeIdentity";
+import {
+  normalizeFarmSignColors,
+  type FarmSignColorMap,
+} from "@/utils/farmSign";
 import { normalizeHomeGroupOrder } from "@/utils/homeNodes";
 import {
   HOME_SORT_NATURAL_DIRECTION,
@@ -93,6 +97,7 @@ export interface ResolvedThemeSettings {
   costRateApiUrl: string;
   enableBackgroundImage: boolean;
   backgroundImageInFarm: boolean;
+  farmSignColors: FarmSignColorMap;
   backgroundImage: string;
   backgroundImageMobile: string;
   backgroundAlignment: string;
@@ -140,6 +145,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   costRateApiUrl: DEFAULT_COST_RATE_API_URL,
   enableBackgroundImage: true,
   backgroundImageInFarm: true,
+  farmSignColors: {},
   backgroundImage: "",
   backgroundImageMobile: "",
   backgroundAlignment: DEFAULT_BACKGROUND_ALIGNMENT,
@@ -268,6 +274,7 @@ export function normalizeThemeSettings(
     enableBackgroundImage: enabledUnlessFalse(settings?.enableBackgroundImage),
     // 默认生效：与已发布行为一致；站长可关掉让 farm 始终用自己的场景。
     backgroundImageInFarm: enabledUnlessFalse(settings?.backgroundImageInFarm),
+    farmSignColors: normalizeFarmSignColors(settings?.farmSignColors),
     backgroundImage: normalizeBackgroundUrl(settings?.backgroundImage),
     backgroundImageMobile: normalizeBackgroundUrl(settings?.backgroundImageMobile),
     backgroundAlignment: normalizeBackgroundAlignment(settings?.backgroundAlignment),

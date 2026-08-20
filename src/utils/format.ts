@@ -209,19 +209,6 @@ function inferPlainTagColor(label: string): string {
   return "violet";
 }
 
-/**
- * 首个 tag 显式标注的 `<color>`；未显式标注时返回 ""（不含 inferPlainTagColor
- * 的推断色）。用途：farm 主题的招牌漆色——推断色大量是 violet，若采纳会让
- * 所有木牌一片紫，所以只有站长显式染色的 tag 才参与分色，其余走顺序循环。
- */
-export function firstExplicitTagColor(raw: string | undefined | null): string {
-  if (!raw) return "";
-  const first = raw.split(";").map((s) => s.trim()).filter(Boolean)[0];
-  if (!first) return "";
-  const m = first.match(/^(.*?)<([a-zA-Z]+)>$/);
-  return m ? m[2].toLowerCase() : "";
-}
-
 /** 把 `tag1<color>;tag2<color2>` 解析成 [{ label, color }]。 */
 export function parseTags(raw: string | undefined | null): Array<{ label: string; color: string }> {
   if (!raw) return [];

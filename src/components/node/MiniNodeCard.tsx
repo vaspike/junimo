@@ -18,6 +18,7 @@ import { IpStackBadges } from "./IpStackBadges";
 import { NodeTodayTrafficPopover } from "./NodeTodayTrafficPopover";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { speedRateColor } from "@/utils/metricTone";
 import { supportsFineHover } from "@/utils/mediaQuery";
 import {
@@ -27,7 +28,8 @@ import {
   pingEmptyLabels,
 } from "./nodeCardShared";
 import { formatHealthBucketTooltip } from "./pingBucketText";
-import { firstExplicitTagColor, formatBytes, formatOfflineDuration, type ByteRateDisplay } from "@/utils/format";
+import { formatBytes, formatOfflineDuration, type ByteRateDisplay } from "@/utils/format";
+import { resolveFarmSignColorId } from "@/utils/farmSign";
 import type { NodeInfo, NodeMetrics, PingOverviewItem, PingOverviewBucket } from "@/types/komari";
 
 // 迷你卡固定为巡检布局，不跟随紧凑卡的可选指标开关；数据仍走共享模型。
@@ -414,6 +416,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
   const model = useNodeCardModel(uuid, {
     pingBucketCount: HEALTH_BAR_COUNT,
   });
+  const themeSettings = useThemeSettings();
 
   if (!model.node) {
     return <article className="mini-node-card animate-pulse" aria-busy />;
@@ -437,11 +440,12 @@ export const MiniNodeCard = memo(function MiniNodeCard({
     osName,
   } = model;
   const offlineDuration = isOffline ? formatOfflineDuration(model.offlineSince).full : null;
+  const signColor = resolveFarmSignColorId(node, themeSettings.farmSignColors);
 
   return (
     <article
       className={clsx("mini-node-card", isOffline && "is-offline")}
-      data-accent={firstExplicitTagColor(node.tags) || undefined}
+      data-accent={signColor ?? undefined}
     >
       <MiniHeader
         node={node}

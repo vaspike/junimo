@@ -58,6 +58,7 @@ import {
   type CostPremiumEntry,
 } from "@/utils/cost";
 import { normalizeNodeIdentityList } from "@/utils/nodeIdentity";
+import { FARM_SIGN_COLORS, normalizeFarmSignColors } from "@/utils/farmSign";
 import {
   dedupeGroupLabels,
   normalizeHomeGroupOrder,
@@ -300,6 +301,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     showConnections: settings.showConnections,
     showTodayTrafficPopover: settings.showTodayTrafficPopover,
     hiddenNodes: settings.hiddenNodes,
+    farmSignColors: settings.farmSignColors,
     costIgnoredNodes: settings.costIgnoredNodes,
     // 按键排序:costPremiums 的键序随编辑历史漂移(删掉再加回同一键会排到最后),而 dirty /
     // reseed 判断都走 JSON.stringify 签名——不排序会把"内容相同、键序不同"误判成有未保存改动。
@@ -334,10 +336,13 @@ type ThemeDraft = Omit<
   | "trafficRatingLabels"
   | "bandwidthRatingLabels"
   | "assetRatingLabels"
+  | "farmSignColors"
 > & {
   ratingLabels: Record<OverviewRatingKind, string>;
   hiddenNodesText: string;
   costIgnoredText: string;
+  /** 农场招牌漆色的编辑态：颜色 id → 多行节点身份文本，保存时归一化回数组。 */
+  farmSignColorTexts: Record<string, string>;
 };
 
 // 服务端设置 → 表单草稿。reseed effect 和重置按钮都经 seedDrafts 走这里。
@@ -348,6 +353,7 @@ function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
     trafficRatingLabels,
     bandwidthRatingLabels,
     assetRatingLabels,
+    farmSignColors,
     ...rest
   } = pickManagedThemeSettings(settings);
   return {
@@ -359,6 +365,9 @@ function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
     },
     hiddenNodesText: hiddenNodes.join("\n"),
     costIgnoredText: costIgnoredNodes.join("\n"),
+    farmSignColorTexts: Object.fromEntries(
+      FARM_SIGN_COLORS.map((color) => [color.id, (farmSignColors[color.id] ?? []).join("\n")]),
+    ),
   };
 }
 
@@ -1275,7 +1284,7 @@ export function ThemeManage() {
   // 「编辑态 → 存储态」的换形与归一化;文本域(hiddenNodesText/costIgnoredText)和 ratingLabels
   // 解构出来换回存储字段,其余原样透传。
   const draftThemeSettings = useMemo<ThemeSettings>(() => {
-    const { ratingLabels, hiddenNodesText, costIgnoredText, ...rest } = draft;
+    const { ratingLabels, hiddenNodesText, costIgnoredText, farmSignColorTexts, ...rest } = draft;
     const homepageMultiPingGroups = rest.homepageMultiPingGroups
       .map((group) => normalizeHomepageMultiPingGroup(group))
       .filter((group): group is HomepageMultiPingGroup => group !== null);
@@ -1291,6 +1300,14 @@ export function ThemeManage() {
       bandwidthRatingLabels: ratingLabels.bandwidth,
       assetRatingLabels: ratingLabels.asset,
       hiddenNodes: normalizeNodeIdentityList(hiddenNodesText),
+      farmSignColors: normalizeFarmSignColors(
+        Object.fromEntries(
+          FARM_SIGN_COLORS.map((color) => [
+            color.id,
+            normalizeNodeIdentityList(farmSignColorTexts[color.id]),
+          ]),
+        ),
+      ),
       costIgnoredNodes: normalizeCostIgnoredNodes(costIgnoredText),
       costPremiums: normalizeCostPremiums(rest.costPremiums),
       costRateApiUrl: normalizeCostRateApiUrl(rest.costRateApiUrl),
@@ -1578,6 +1595,44 @@ export function ThemeManage() {
               <span>{label}</span>
             </button>
           ))}
+        </div>
+
+        <div className="surface-inset mt-4 flex flex-col gap-3 px-4 py-4">
+          <div>
+            <div className="text-[13px] font-semibold text-[var(--text-primary)]">
+              农场招牌颜色
+            </div>
+            <div className="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
+              仅「像素农场」外观生效：给每种漆色指派节点（名称 / UUID，每行一个，大小写不敏感），
+              该节点的招牌即漆成此色，与 tag 颜色无关。未配置的节点使用默认灰木色；
+              离线节点显示为枯木色；同一节点被配进多种颜色时取靠上的一种。
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {FARM_SIGN_COLORS.map((color) => (
+              <label key={color.id} className="flex min-w-0 flex-col gap-1.5">
+                <span className="inline-flex items-center gap-2 text-[12px] font-medium text-[var(--text-secondary)]">
+                  <span
+                    aria-hidden
+                    className="inline-block h-3.5 w-3.5 rounded-[4px] border-2"
+                    style={{ background: color.main, borderColor: color.dark }}
+                  />
+                  {color.label}
+                </span>
+                <textarea
+                  value={draft.farmSignColorTexts[color.id] ?? ""}
+                  onChange={(event) =>
+                    patch("farmSignColorTexts", {
+                      ...draft.farmSignColorTexts,
+                      [color.id]: event.target.value,
+                    })
+                  }
+                  placeholder="未指派任何节点"
+                  className="surface-inset min-h-[56px] w-full resize-y px-3 py-2 text-[12px] outline-none"
+                />
+              </label>
+            ))}
+          </div>
         </div>
       </InstancePanel>
 

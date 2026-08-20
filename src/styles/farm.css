@@ -355,68 +355,40 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
 
 :root[data-appearance="farm"] {
   --farm-title-font: "Fusion Pixel 12px", var(--font-sans);
-  /* 木牌默认漆色（深木色）；按网格顺序循环或由 data-accent（tag 色）覆写 */
-  --farm-accent: #8a5a2b;
-  --farm-accent-dark: #5f3d1c;
+  /* 木牌默认漆色 = 灰木；由卡片 data-accent（主题设置里按节点指派的招牌色）覆写 */
+  --farm-accent: #a08a6a;
+  --farm-accent-dark: #73604a;
 }
 
 /* ---------------------------------------------------------- 卡片分色 -- */
-/* 无 tag 时按网格顺序循环上漆（星露谷式招牌漆色，够深以托住米白文字）。
-   卡片外有 div.min-w-0 包装，所以循环挂在 .node-grid 的格子序号上，--farm-accent 沿继承进卡片。 */
-:root[data-appearance="farm"] .node-grid > :nth-child(6n+1) {
-  --farm-accent: #69a03c; --farm-accent-dark: #4a7028;
+/* 内置招牌漆色（星露谷式漆色，够深以托住米白文字）。与 tag 颜色无关：
+   完全由主题设置「农场招牌颜色」按节点指派，未配置的节点保持默认灰木。
+   色值与 src/utils/farmSign.ts 的 FARM_SIGN_COLORS 手工同步。 */
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="green"] {
+  --farm-accent: #6f9f43; --farm-accent-dark: #4d7030;
 }
-:root[data-appearance="farm"] .node-grid > :nth-child(6n+2) {
-  --farm-accent: #4a86d8; --farm-accent-dark: #2f5ea8;
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="blue"] {
+  --farm-accent: #5b8fc2; --farm-accent-dark: #3e6491;
 }
-:root[data-appearance="farm"] .node-grid > :nth-child(6n+3) {
-  --farm-accent: #d97f36; --farm-accent-dark: #a85a20;
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="red"] {
+  --farm-accent: #b8553f; --farm-accent-dark: #86392b;
 }
-:root[data-appearance="farm"] .node-grid > :nth-child(6n+4) {
-  --farm-accent: #d86a9a; --farm-accent-dark: #a8456e;
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="orange"] {
+  --farm-accent: #cf7f36; --farm-accent-dark: #98591f;
 }
-:root[data-appearance="farm"] .node-grid > :nth-child(6n+5) {
-  --farm-accent: #3fa8a0; --farm-accent-dark: #2a756f;
-}
-:root[data-appearance="farm"] .node-grid > :nth-child(6n+6) {
-  --farm-accent: #8e6bc0; --farm-accent-dark: #5f448f;
-}
-
-/* tag 色优先：节点第一个 tag 的颜色映射为木牌漆色（与 tokens.css 的 tag 色系一致） */
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="ruby"], [data-accent="red"], [data-accent="tomato"], [data-accent="crimson"]) {
-  --farm-accent: #c94f42; --farm-accent-dark: #97392f;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="gold"], [data-accent="amber"], [data-accent="yellow"]) {
-  --farm-accent: #d99a2b; --farm-accent-dark: #a87620;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="orange"], [data-accent="bronze"], [data-accent="brown"]) {
-  --farm-accent: #d97f36; --farm-accent-dark: #a85a20;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="green"], [data-accent="grass"]) {
-  --farm-accent: #69a03c; --farm-accent-dark: #4a7028;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="mint"], [data-accent="jade"]) {
-  --farm-accent: #3fa08a; --farm-accent-dark: #2a7060;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="lime"] {
-  --farm-accent: #8db654; --farm-accent-dark: #648234;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="blue"], [data-accent="sky"], [data-accent="cyan"], [data-accent="teal"]) {
-  --farm-accent: #4a86d8; --farm-accent-dark: #2f5ea8;
-}
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="violet"], [data-accent="purple"], [data-accent="plum"], [data-accent="iris"], [data-accent="indigo"]) {
-  --farm-accent: #8e6bc0; --farm-accent-dark: #5f448f;
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="honey"] {
+  --farm-accent: #c99a35; --farm-accent-dark: #93702a;
 }
 :root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="pink"] {
-  --farm-accent: #d86a9a; --farm-accent-dark: #a8456e;
+  --farm-accent: #c97a97; --farm-accent-dark: #96556e;
 }
-:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card):is([data-accent="slate"], [data-accent="gray"]) {
-  --farm-accent: #7a6a55; --farm-accent-dark: #55483a;
+:root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card)[data-accent="violet"] {
+  --farm-accent: #8668b4; --farm-accent-dark: #5e4783;
 }
 
-/* 离线 = 招牌掉漆（最后声明，压过循环与 data-accent） */
+/* 离线 = 枯木色（比默认灰木更暗更朽，最后声明以压过 data-accent） */
 :root[data-appearance="farm"] :is(.server-card, .compact-node-card, .mini-node-card).is-offline {
-  --farm-accent: #a08a6a; --farm-accent-dark: #73604a;
+  --farm-accent: #7d6f5e; --farm-accent-dark: #574b3d;
 }
 
 /* ---------------------------------------------------------- 标题木牌 -- */

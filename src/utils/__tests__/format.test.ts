@@ -9,7 +9,6 @@ import {
   formatTrafficRateLabel,
   formatUptimeDays,
   getExpireDaysRemaining,
-  firstExplicitTagColor,
   parseTags,
   resolveExpireTimestamp,
   trimFixed,
@@ -151,21 +150,6 @@ describe("getExpireDaysRemaining / formatExpireDays", () => {
     expect(formatExpireDays(inDays(0, 1))).toEqual({ value: "今日", unit: "", tone: "critical" });
     // 已是过去时间
     expect(formatExpireDays(inDays(-2))).toEqual({ value: "已过期", unit: "", tone: "critical" });
-  });
-});
-
-describe("firstExplicitTagColor", () => {
-  it("returns the first tag's explicit color, lowercased", () => {
-    expect(firstExplicitTagColor("香港<Blue>; 优质")).toBe("blue");
-    expect(firstExplicitTagColor("  BGP<Gold> ")).toBe("gold");
-  });
-
-  it("returns '' when the first tag has no explicit color", () => {
-    // 推断色（如 violet）不应参与 farm 招牌分色
-    expect(firstExplicitTagColor("高带宽")).toBe("");
-    expect(firstExplicitTagColor(null)).toBe("");
-    expect(firstExplicitTagColor("")).toBe("");
-    expect(firstExplicitTagColor(";;")).toBe("");
   });
 });
 

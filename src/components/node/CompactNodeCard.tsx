@@ -20,7 +20,8 @@ import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { firstExplicitTagColor, formatBytes, formatOfflineDuration } from "@/utils/format";
+import { formatBytes, formatOfflineDuration } from "@/utils/format";
+import { resolveFarmSignColorId } from "@/utils/farmSign";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import { speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
 import { supportsFineHover } from "@/utils/mediaQuery";
@@ -721,11 +722,12 @@ export const CompactNodeCard = memo(function CompactNodeCard({
   // 开关关闭或节点离线时,完全跳过格式化工作。
   const uptimeLabel = showUptime && !isOffline ? formatCompactUptime(node.uptime) : "";
   const offlineDuration = isOffline ? formatOfflineDuration(model.offlineSince).full : null;
+  const signColor = resolveFarmSignColorId(node, themeSettings.farmSignColors);
 
   return (
     <article
       className={clsx("compact-node-card", isOffline && "is-offline")}
-      data-accent={firstExplicitTagColor(node.tags) || undefined}
+      data-accent={signColor ?? undefined}
     >
       <CompactNodeHeader
         node={node}

@@ -684,7 +684,7 @@ export function NodeGrid() {
   const isMini = mode === "mini";
   const isList = mode === "list";
   const { className: gridClassName, minColumnWidth } = GRID_LAYOUT[mode];
-  // node-grid 是稳定钩子（farm 主题的招牌漆色按格子序号循环），勿用 tailwind 类名代替。
+  // node-grid 是稳定钩子（farm 主题等样式按其区分网格/迷你网格），勿用 tailwind 类名代替。
   const gridWrapClassName = `${gridClassName} node-grid${isMini ? " node-grid-mini" : ""}`;
   const gridStyle = isList
     ? undefined
