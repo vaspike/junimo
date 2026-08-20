@@ -1719,16 +1719,16 @@ export function ThemeManage() {
         </div>
         <div className="theme-masthead-main">
           <div className="theme-masthead-headings">
-            <span className="theme-masthead-kicker">LUMINAPRO · 主题控制台</span>
+            <span className="theme-masthead-kicker">JUNIMO · 主题控制台</span>
             <h1 className="theme-masthead-title">主题设置</h1>
             <p className="theme-masthead-desc">
-              集中调整 LuminaPro 的展示偏好与首页延迟绑定；保存后立即应用到当前站点。
+              集中调整 Junimo 的展示偏好与首页延迟绑定；保存后立即应用到当前站点。
             </p>
           </div>
           <dl className="theme-masthead-meta">
             <div>
               <dt>主题</dt>
-              <dd>{config?.theme || "lumina-pro"}</dd>
+              <dd>{config?.theme || "junimo"}</dd>
             </div>
             <div>
               <dt>已绑定 Ping</dt>

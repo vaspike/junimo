@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { usePublicConfig } from "@/hooks/usePublicConfig";
 
-const FALLBACK_TITLE = "lumina-pro";
+const FALLBACK_TITLE = "Junimo";
 const FALLBACK_DESCRIPTION = "A Komari monitor theme.";
 
 function updateMeta(selector: string, attr: "content", value: string) {

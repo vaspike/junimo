@@ -105,7 +105,7 @@ export interface ResolvedThemeSettings {
 }
 
 export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
-  defaultAppearance: "system",
+  defaultAppearance: "farm",
   desktopNodeViewMode: "large",
   mobileNodeViewMode: "compact",
   enableAdminButton: true,
