@@ -96,9 +96,6 @@
   --farm-sun: #ffe787;
   --farm-sun-core: #fff3b0;
   --farm-sun-glow: rgba(255, 240, 170, 0.55);
-  /* 飘落物：默认春（花瓣） */
-  --farm-ambient-a: rgba(242, 167, 195, 0.9);
-  --farm-ambient-b: rgba(247, 215, 116, 0.85);
 }
 /* 夏：深草、白花、绿叶 */
 :root[data-appearance="farm"][data-farm-season="summer"] {
@@ -108,8 +105,6 @@
   --farm-grass-low: #458231;
   --farm-flower-a: #f7d774;
   --farm-flower-b: #ffffff;
-  --farm-ambient-a: rgba(126, 191, 82, 0.9);
-  --farm-ambient-b: rgba(88, 164, 71, 0.85);
 }
 /* 秋：金草、橙红叶 */
 :root[data-appearance="farm"][data-farm-season="autumn"] {
@@ -119,8 +114,6 @@
   --farm-grass-low: #9c7030;
   --farm-flower-a: #e07a4f;
   --farm-flower-b: #d9a03b;
-  --farm-ambient-a: rgba(224, 122, 79, 0.9);
-  --farm-ambient-b: rgba(201, 127, 58, 0.85);
 }
 /* 冬：雪原、雪花 */
 :root[data-appearance="farm"][data-farm-season="winter"] {
@@ -132,8 +125,6 @@
   --farm-fence-dark: #7a6a5a;
   --farm-flower-a: #ffffff;
   --farm-flower-b: #d5e5ea;
-  --farm-ambient-a: rgba(255, 255, 255, 0.95);
-  --farm-ambient-b: rgba(230, 240, 245, 0.9);
 }
 /* 夕照场景变量（全年一致，覆写季节；卡片羊皮纸在上方 token 块单独压深） */
 :root[data-appearance="farm"][data-farm-scene="dusk"] {
@@ -152,14 +143,11 @@
   --farm-sun: #ffbf6a;
   --farm-sun-core: #ffd98e;
   --farm-sun-glow: rgba(255, 176, 92, 0.5);
-  /* 夜里不飘叶子，换成萤火虫 */
-  --farm-ambient-a: rgba(255, 232, 154, 0.95);
-  --farm-ambient-b: rgba(255, 214, 120, 0.85);
 }
 
 /* ------------------------------------------------------------ 场景背景 -- */
 /* 画在 body::before 上。站长配置了自定义背景图时（<html data-bg-image>，由
-   applyBackgroundCache / 首帧脚本写入），场景与飘落物整层让位——farm 只剩
+   applyBackgroundCache / 首帧脚本写入），场景整层让位——farm 只剩
    面板/字体/图标皮。栅栏 = 两道 repeat-x 图层；花丛 = 草地上几朵像素花。 */
 html[data-appearance="farm"]:not([data-bg-image]) body::before {
   background-image:
@@ -247,48 +235,6 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
     no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
     repeat-x, repeat-x,
     no-repeat, no-repeat;
-}
-
-/* ---------------------------------------------------------- 环境飘落物 -- */
-/* 画在 body::after（平时是可读性遮罩层，farm 无遮罩正好借用）。白天飘落物
-   随季节（春花瓣/夏叶/秋叶/冬雪），夜里是萤火虫。瓦片 520px 无限平铺，
-   动画只动 background-position（合成器友好）。 */
-html[data-appearance="farm"]:not([data-bg-image]) body::after {
-  background-image:
-    radial-gradient(circle 2.5px at 15% 20%, var(--farm-ambient-a) 60%, rgba(0, 0, 0, 0) 62%),
-    radial-gradient(circle 2px at 45% 65%, var(--farm-ambient-b) 60%, rgba(0, 0, 0, 0) 62%),
-    radial-gradient(circle 2.5px at 70% 35%, var(--farm-ambient-a) 60%, rgba(0, 0, 0, 0) 62%),
-    radial-gradient(circle 2px at 90% 75%, var(--farm-ambient-b) 60%, rgba(0, 0, 0, 0) 62%),
-    radial-gradient(circle 2px at 30% 85%, var(--farm-ambient-a) 60%, rgba(0, 0, 0, 0) 62%);
-  background-size: 520px 520px;
-  background-repeat: repeat;
-  animation: farm-ambient-fall 46s linear infinite;
-}
-@keyframes farm-ambient-fall {
-  to {
-    background-position:
-      130px 520px, -90px 520px, 160px 520px, -140px 520px, 60px 520px;
-  }
-}
-/* 萤火虫：更亮更柔，缓慢漂游而非下落 */
-html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::after {
-  background-image:
-    radial-gradient(circle 3px at 18% 60%, var(--farm-ambient-a) 25%, rgba(255, 232, 154, 0) 70%),
-    radial-gradient(circle 2.5px at 55% 45%, var(--farm-ambient-b) 25%, rgba(255, 214, 120, 0) 70%),
-    radial-gradient(circle 3px at 80% 70%, var(--farm-ambient-a) 25%, rgba(255, 232, 154, 0) 70%),
-    radial-gradient(circle 2.5px at 35% 80%, var(--farm-ambient-b) 25%, rgba(255, 214, 120, 0) 70%);
-  background-size: 460px 460px;
-  animation: farm-ambient-drift 34s ease-in-out infinite alternate;
-}
-@keyframes farm-ambient-drift {
-  to {
-    background-position: 60px -30px, -50px 25px, 40px 40px, -35px -45px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  html[data-appearance="farm"] body::after {
-    animation: none;
-  }
 }
 
 /* ------------------------------------------------------------ 木框面板 -- */

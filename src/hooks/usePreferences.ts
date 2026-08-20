@@ -13,8 +13,8 @@ export function farmSceneOf(date: Date = new Date()): FarmScene {
   return hour >= FARM_DAY_START_HOUR && hour < FARM_DAY_END_HOUR ? "day" : "dusk";
 }
 
-// 真实月份 → 农场四季：3–5 春 / 6–8 夏 / 9–11 秋 / 12–2 冬。只影响场景配色与
-// 飘落物（春花瓣/夏叶/秋叶/冬雪），卡片与其他外观不变。
+// 真实月份 → 农场四季：3–5 春 / 6–8 夏 / 9–11 秋 / 12–2 冬。只影响场景配色
+//（天色 / 草地 / 栅栏 / 野花），卡片与其他外观不变。
 export type FarmSeason = "spring" | "summer" | "autumn" | "winter";
 
 export function farmSeasonOf(date: Date = new Date()): FarmSeason {
