@@ -36,7 +36,7 @@ import {
   getNodes,
   saveThemeSettings,
 } from "@/services/api";
-import type { AdminClient, PingTask, ThemeSettings } from "@/types/komari";
+import type { AdminClient, NodeInfo, PingTask, ThemeSettings } from "@/types/komari";
 import {
   type BackgroundPosition,
   type BackgroundSize,
@@ -57,8 +57,17 @@ import {
   normalizeCostRateApiUrl,
   type CostPremiumEntry,
 } from "@/utils/cost";
-import { normalizeNodeIdentityList } from "@/utils/nodeIdentity";
-import { FARM_SIGN_COLORS, normalizeFarmSignColors } from "@/utils/farmSign";
+import {
+  buildNodeIdentitySet,
+  nodeMatchesIdentitySet,
+  normalizeNodeIdentityList,
+} from "@/utils/nodeIdentity";
+import {
+  FARM_SIGN_COLORS,
+  normalizeFarmSignColors,
+  type FarmSignColor,
+  type FarmSignColorId,
+} from "@/utils/farmSign";
 import {
   dedupeGroupLabels,
   normalizeHomeGroupOrder,
@@ -336,13 +345,10 @@ type ThemeDraft = Omit<
   | "trafficRatingLabels"
   | "bandwidthRatingLabels"
   | "assetRatingLabels"
-  | "farmSignColors"
 > & {
   ratingLabels: Record<OverviewRatingKind, string>;
   hiddenNodesText: string;
   costIgnoredText: string;
-  /** 农场招牌漆色的编辑态：颜色 id → 多行节点身份文本，保存时归一化回数组。 */
-  farmSignColorTexts: Record<string, string>;
 };
 
 // 服务端设置 → 表单草稿。reseed effect 和重置按钮都经 seedDrafts 走这里。
@@ -353,7 +359,6 @@ function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
     trafficRatingLabels,
     bandwidthRatingLabels,
     assetRatingLabels,
-    farmSignColors,
     ...rest
   } = pickManagedThemeSettings(settings);
   return {
@@ -365,9 +370,6 @@ function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
     },
     hiddenNodesText: hiddenNodes.join("\n"),
     costIgnoredText: costIgnoredNodes.join("\n"),
-    farmSignColorTexts: Object.fromEntries(
-      FARM_SIGN_COLORS.map((color) => [color.id, (farmSignColors[color.id] ?? []).join("\n")]),
-    ),
   };
 }
 
@@ -814,6 +816,159 @@ const MultiPingGroupEditor = memo(function MultiPingGroupEditor({
   );
 });
 
+// 勾选态写入的是 uuid；取消勾选时要把命中该节点的身份条目一并清掉——
+// 条目也可能是上一版文本域留下的名称，所以按 uuid 或名称等值匹配。
+function identityMatchesClient(identity: string, client: AdminClient) {
+  const normalized = identity.trim().toLowerCase();
+  return (
+    normalized === client.uuid.toLowerCase() ||
+    normalized === client.name.trim().toLowerCase()
+  );
+}
+
+// 一种农场招牌漆色的编辑器：摘要行 + 展开的节点复选网格。交互与三网/绑定一致：
+// 互斥（节点只属于一种漆色，已归他色的节点禁选）、搜索过滤、清空。memo 原因同三网编辑器。
+const FarmSignColorEditor = memo(function FarmSignColorEditor({
+  color,
+  identities,
+  matchedUuids,
+  clientsById,
+  visibleClients,
+  assignedColorByClientUuid,
+  expanded,
+  nodeSearch,
+  onNodeSearch,
+  onToggleExpand,
+  onPatchClients,
+}: {
+  color: FarmSignColor;
+  identities: string[];
+  matchedUuids: Set<string>;
+  clientsById: Map<string, AdminClient>;
+  visibleClients: AdminClient[];
+  assignedColorByClientUuid: Map<string, string>;
+  expanded: boolean;
+  nodeSearch: string;
+  onNodeSearch: (value: string) => void;
+  onToggleExpand: (colorId: string) => void;
+  onPatchClients: (colorId: string, updater: (prev: string[]) => string[]) => void;
+}) {
+  const assignedSummary = summarizeNodes([...matchedUuids], clientsById);
+  return (
+    <section className="surface-inset px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
+          <span
+            aria-hidden
+            className="inline-block h-4 w-4 shrink-0 rounded-[5px] border-2"
+            style={{ background: color.main, borderColor: color.dark }}
+          />
+          <span className="text-[13px] font-semibold text-[var(--text-primary)]">
+            {color.label}
+          </span>
+          <span className="text-[12px] text-[var(--text-secondary)]">
+            {matchedUuids.size > 0 ? `已选 ${matchedUuids.size} 个节点` : "未指派节点"}
+          </span>
+          {matchedUuids.size > 0 && (
+            <span
+              className="min-w-0 truncate text-[11px] text-[var(--text-tertiary)]"
+              title={assignedSummary}
+            >
+              {assignedSummary}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {identities.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onPatchClients(color.id, () => [])}
+              className="theme-manage-button is-compact is-danger"
+            >
+              清空节点
+            </button>
+          )}
+          <button
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => onToggleExpand(color.id)}
+            className="theme-manage-button is-compact"
+          >
+            {expanded ? "收起节点" : "编辑节点"}
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-3 border-t border-[var(--hairline)] pt-3">
+          <label className="surface-inset flex items-center gap-2 px-3 py-2">
+            <Search size={14} className="text-[var(--text-tertiary)]" />
+            <input
+              value={nodeSearch}
+              onChange={(event) => onNodeSearch(event.target.value)}
+              placeholder="搜索节点名称 / UUID / 分组 / 地区"
+              aria-label={`搜索${color.label}招牌节点`}
+              className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-tertiary)]"
+            />
+          </label>
+
+          <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {visibleClients.map((client) => {
+              const checked = matchedUuids.has(client.uuid);
+              const assignedColor = assignedColorByClientUuid.get(client.uuid);
+              const ownedByOther = assignedColor != null && assignedColor !== color.id;
+              const subtitle = [client.group, client.uuid].filter(Boolean).join(" · ");
+              return (
+                <label
+                  key={client.uuid}
+                  className={clsx(
+                    "flex cursor-pointer items-start gap-3 rounded-[12px] border px-3 py-3 transition-colors",
+                    checked
+                      ? "border-[var(--border-strong)] bg-[color-mix(in_srgb,var(--hover-bg)_72%,transparent)]"
+                      : "border-[var(--hairline)] bg-transparent hover:bg-[var(--hover-bg)]",
+                    ownedByOther && "opacity-40",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={ownedByOther}
+                    onChange={(event) => {
+                      const nextChecked = event.target.checked;
+                      onPatchClients(color.id, (prev) =>
+                        nextChecked
+                          ? Array.from(new Set([...prev, client.uuid]))
+                          : prev.filter((identity) => !identityMatchesClient(identity, client)),
+                      );
+                    }}
+                    className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent-500)]"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Flag region={client.region} size={14} />
+                      <span className="truncate text-[13px] font-medium text-[var(--text-primary)]">
+                        {client.name}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-[var(--text-tertiary)]">
+                      {ownedByOther
+                        ? `已归属「${FARM_SIGN_COLORS.find((c) => c.id === assignedColor)?.label ?? assignedColor}」`
+                        : subtitle || client.region || "未设置分组"}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+            {visibleClients.length === 0 && (
+              <div className="text-[12px] text-[var(--text-tertiary)]">没有匹配的节点</div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+});
+
 // 溢价录入列表。memo:编辑其他设置的击键不重渲整表——引用变化只来自
 // costPremiums 切片、搜索结果与汇率加载态。
 const PremiumList = memo(function PremiumList({
@@ -985,6 +1140,27 @@ export function ThemeManage() {
     setExpandedMultiPingGroup((current) => (current === groupIndex ? null : groupIndex));
     setNodeSearch("");
   }, []);
+  const [expandedFarmSignColor, setExpandedFarmSignColor] = useState<string | null>(null);
+  const toggleFarmSignColorExpanded = useCallback((colorId: string) => {
+    setExpandedFarmSignColor((current) => (current === colorId ? null : colorId));
+    setNodeSearch("");
+  }, []);
+  const patchFarmSignClients = useCallback(
+    (colorId: string, updater: (prev: string[]) => string[]) => {
+      editVersionRef.current += 1;
+      setDraft((prev) => {
+        const nextColors = { ...prev.farmSignColors };
+        const nextList = updater(nextColors[colorId as FarmSignColorId] ?? []);
+        if (nextList.length > 0) {
+          nextColors[colorId as FarmSignColorId] = nextList;
+        } else {
+          delete nextColors[colorId as FarmSignColorId];
+        }
+        return { ...prev, farmSignColors: nextColors };
+      });
+    },
+    [],
+  );
   const patchMultiPingGroupTask = useCallback(
     (groupIndex: number, slot: number, rawValue: string) => {
       editVersionRef.current += 1;
@@ -1099,6 +1275,34 @@ export function ThemeManage() {
     () => new Map(sortedClients.map((client) => [client.uuid, client])),
     [sortedClients],
   );
+
+  // 农场招牌漆色：身份列表 → 命中的节点 uuid（摘要 / 勾选态 / 互斥共用）。
+  // 与运行时 resolveFarmSignColorId 一致，按 FARM_SIGN_COLORS 声明顺序先到先得。
+  const farmSignMatchedUuids = useMemo(() => {
+    const result = new Map<string, Set<string>>();
+    for (const color of FARM_SIGN_COLORS) {
+      const identitySet = buildNodeIdentitySet(draft.farmSignColors[color.id] ?? []);
+      const matched = new Set<string>();
+      if (identitySet.size > 0) {
+        for (const client of sortedClients) {
+          if (nodeMatchesIdentitySet(client as unknown as NodeInfo, identitySet)) {
+            matched.add(client.uuid);
+          }
+        }
+      }
+      result.set(color.id, matched);
+    }
+    return result;
+  }, [draft.farmSignColors, sortedClients]);
+  const assignedFarmSignColorByClientUuid = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const color of FARM_SIGN_COLORS) {
+      for (const uuid of farmSignMatchedUuids.get(color.id) ?? []) {
+        if (!map.has(uuid)) map.set(uuid, color.id);
+      }
+    }
+    return map;
+  }, [farmSignMatchedUuids]);
 
   // 后端实际存在的分组,按首页 Tab 的渲染顺序排列(已配置的在前,未排序的在后)。
   // 用户直接拖动这个列表来调整顺序。
@@ -1284,7 +1488,7 @@ export function ThemeManage() {
   // 「编辑态 → 存储态」的换形与归一化;文本域(hiddenNodesText/costIgnoredText)和 ratingLabels
   // 解构出来换回存储字段,其余原样透传。
   const draftThemeSettings = useMemo<ThemeSettings>(() => {
-    const { ratingLabels, hiddenNodesText, costIgnoredText, farmSignColorTexts, ...rest } = draft;
+    const { ratingLabels, hiddenNodesText, costIgnoredText, ...rest } = draft;
     const homepageMultiPingGroups = rest.homepageMultiPingGroups
       .map((group) => normalizeHomepageMultiPingGroup(group))
       .filter((group): group is HomepageMultiPingGroup => group !== null);
@@ -1300,14 +1504,7 @@ export function ThemeManage() {
       bandwidthRatingLabels: ratingLabels.bandwidth,
       assetRatingLabels: ratingLabels.asset,
       hiddenNodes: normalizeNodeIdentityList(hiddenNodesText),
-      farmSignColors: normalizeFarmSignColors(
-        Object.fromEntries(
-          FARM_SIGN_COLORS.map((color) => [
-            color.id,
-            normalizeNodeIdentityList(farmSignColorTexts[color.id]),
-          ]),
-        ),
-      ),
+      farmSignColors: normalizeFarmSignColors(rest.farmSignColors),
       costIgnoredNodes: normalizeCostIgnoredNodes(costIgnoredText),
       costPremiums: normalizeCostPremiums(rest.costPremiums),
       costRateApiUrl: normalizeCostRateApiUrl(rest.costRateApiUrl),
@@ -1603,34 +1800,27 @@ export function ThemeManage() {
               农场招牌颜色
             </div>
             <div className="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
-              仅「像素农场」外观生效：给每种漆色指派节点（名称 / UUID，每行一个，大小写不敏感），
-              该节点的招牌即漆成此色，与 tag 颜色无关。未配置的节点使用默认灰木色；
-              离线节点显示为枯木色；同一节点被配进多种颜色时取靠上的一种。
+              仅「像素农场」外观生效：展开一种漆色勾选节点，这些节点的招牌即漆成此色，
+              与 tag 颜色无关。一个节点只能属于一种漆色；未勾选的节点使用默认灰木色；
+              离线节点显示为枯木色。
             </div>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="flex flex-col gap-3">
             {FARM_SIGN_COLORS.map((color) => (
-              <label key={color.id} className="flex min-w-0 flex-col gap-1.5">
-                <span className="inline-flex items-center gap-2 text-[12px] font-medium text-[var(--text-secondary)]">
-                  <span
-                    aria-hidden
-                    className="inline-block h-3.5 w-3.5 rounded-[4px] border-2"
-                    style={{ background: color.main, borderColor: color.dark }}
-                  />
-                  {color.label}
-                </span>
-                <textarea
-                  value={draft.farmSignColorTexts[color.id] ?? ""}
-                  onChange={(event) =>
-                    patch("farmSignColorTexts", {
-                      ...draft.farmSignColorTexts,
-                      [color.id]: event.target.value,
-                    })
-                  }
-                  placeholder="未指派任何节点"
-                  className="surface-inset min-h-[56px] w-full resize-y px-3 py-2 text-[12px] outline-none"
-                />
-              </label>
+              <FarmSignColorEditor
+                key={color.id}
+                color={color}
+                identities={draft.farmSignColors[color.id] ?? []}
+                matchedUuids={farmSignMatchedUuids.get(color.id) ?? new Set()}
+                clientsById={clientsById}
+                visibleClients={visibleClients}
+                assignedColorByClientUuid={assignedFarmSignColorByClientUuid}
+                expanded={expandedFarmSignColor === color.id}
+                nodeSearch={nodeSearch}
+                onNodeSearch={setNodeSearch}
+                onToggleExpand={toggleFarmSignColorExpanded}
+                onPatchClients={patchFarmSignClients}
+              />
             ))}
           </div>
         </div>

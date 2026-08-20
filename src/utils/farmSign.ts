@@ -14,6 +14,7 @@ export const FARM_SIGN_COLORS = [
 ] as const;
 
 export type FarmSignColorId = (typeof FARM_SIGN_COLORS)[number]["id"];
+export type FarmSignColor = (typeof FARM_SIGN_COLORS)[number];
 
 const FARM_SIGN_COLOR_IDS = new Set<string>(FARM_SIGN_COLORS.map((c) => c.id));
 
