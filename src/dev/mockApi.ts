@@ -552,11 +552,13 @@ export function installDevMockApi() {
           enableHomepageMultiPing:
             new URLSearchParams(window.location.search).get("multiPing") === "1",
           homepageMultiPingTaskIds: [1, 2, 3],
-          // ?bg=1 时配置昼/夕双图背景，回归验证 farm 主题的场景切换与让位逻辑。
+          // ?bg=1 时配置昼/夕双图背景 + 较低卡片不透明度，回归验证 farm 主题的
+          // 场景切换、让位逻辑与半透明羊皮纸。
           ...(new URLSearchParams(window.location.search).get("bg") === "1"
             ? {
                 backgroundImage:
                   "https://picsum.photos/seed/farm-day/1920/1080|https://picsum.photos/seed/farm-night/1920/1080",
+                surfaceOpacity: 60,
               }
             : {}),
           // 农场招牌漆色演示：几种颜色各指派一个节点，其余保持默认木棕。

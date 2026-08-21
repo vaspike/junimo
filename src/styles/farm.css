@@ -8,17 +8,25 @@
 
 /* ---------------------------------------------------------------- 色板 -- */
 :root[data-appearance="farm"] {
-  /* 木框九宫格（48×48 SVG，slice 16 fill）：描边 #4a2c17 / 木色 #a86a34 /
-     高光 #c98a4e / 阴影 #6f4220 / 内槽 #7c4e26 / 羊皮纸芯 #f9e9c3，
-     四角阶梯像素圆角由 mask 切出。节点卡、总览卡、分组条共用。 */
-  --farm-frame-src: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cmask id='m'%3E%3Crect width='48' height='48' fill='%23fff'/%3E%3Crect x='0' y='0' width='6' height='2'/%3E%3Crect x='0' y='2' width='4' height='2'/%3E%3Crect x='0' y='4' width='2' height='2'/%3E%3Crect x='42' y='0' width='6' height='2'/%3E%3Crect x='44' y='2' width='4' height='2'/%3E%3Crect x='46' y='4' width='2' height='2'/%3E%3Crect x='0' y='46' width='6' height='2'/%3E%3Crect x='0' y='44' width='4' height='2'/%3E%3Crect x='0' y='42' width='2' height='2'/%3E%3Crect x='42' y='46' width='6' height='2'/%3E%3Crect x='44' y='44' width='4' height='2'/%3E%3Crect x='46' y='42' width='2' height='2'/%3E%3C/mask%3E%3Cg mask='url(%23m)'%3E%3Crect width='48' height='48' fill='%23a86a34'/%3E%3Crect x='6' y='0' width='36' height='2' fill='%234a2c17'/%3E%3Crect x='6' y='46' width='36' height='2' fill='%234a2c17'/%3E%3Crect x='0' y='6' width='2' height='36' fill='%234a2c17'/%3E%3Crect x='46' y='6' width='2' height='36' fill='%234a2c17'/%3E%3Crect x='4' y='2' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='2' y='4' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='42' y='2' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='44' y='4' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='4' y='44' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='2' y='42' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='42' y='44' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='44' y='42' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='6' y='2' width='36' height='2' fill='%23c98a4e'/%3E%3Crect x='2' y='6' width='2' height='36' fill='%23c98a4e'/%3E%3Crect x='6' y='44' width='36' height='2' fill='%236f4220'/%3E%3Crect x='44' y='6' width='2' height='36' fill='%236f4220'/%3E%3Crect x='12' y='7' width='10' height='2' fill='%238a5426'/%3E%3Crect x='28' y='10' width='12' height='2' fill='%238a5426'/%3E%3Crect x='12' y='38' width='12' height='2' fill='%238a5426'/%3E%3Crect x='7' y='14' width='2' height='10' fill='%238a5426'/%3E%3Crect x='39' y='22' width='2' height='10' fill='%238a5426'/%3E%3Crect x='0' y='14' width='48' height='2' fill='%237c4e26'/%3E%3Crect x='0' y='32' width='48' height='2' fill='%237c4e26'/%3E%3Crect x='14' y='0' width='2' height='48' fill='%237c4e26'/%3E%3Crect x='32' y='0' width='2' height='48' fill='%237c4e26'/%3E%3Crect x='16' y='16' width='16' height='16' fill='%23f9e9c3'/%3E%3C/g%3E%3C/svg%3E");
+  /* 木框九宫格（48×48 SVG，slice 16 无 fill）：描边 #4a2c17 / 木色 #a86a34 /
+     高光 #c98a4e / 阴影 #6f4220 / 内槽 #7c4e26，四角阶梯像素圆角由 mask 切出。
+     羊皮纸芯不在 SVG 里，由各处木框规则的 background: var(--surface-a) 绘制，
+     以支持「卡片不透明度」设置。节点卡、总览卡、分组条共用。 */
+  --farm-frame-src: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cmask id='m'%3E%3Crect width='48' height='48' fill='%23fff'/%3E%3Crect x='0' y='0' width='6' height='2'/%3E%3Crect x='0' y='2' width='4' height='2'/%3E%3Crect x='0' y='4' width='2' height='2'/%3E%3Crect x='42' y='0' width='6' height='2'/%3E%3Crect x='44' y='2' width='4' height='2'/%3E%3Crect x='46' y='4' width='2' height='2'/%3E%3Crect x='0' y='46' width='6' height='2'/%3E%3Crect x='0' y='44' width='4' height='2'/%3E%3Crect x='0' y='42' width='2' height='2'/%3E%3Crect x='42' y='46' width='6' height='2'/%3E%3Crect x='44' y='44' width='4' height='2'/%3E%3Crect x='46' y='42' width='2' height='2'/%3E%3C/mask%3E%3Cg mask='url(%23m)'%3E%3Crect width='48' height='48' fill='%23a86a34'/%3E%3Crect x='6' y='0' width='36' height='2' fill='%234a2c17'/%3E%3Crect x='6' y='46' width='36' height='2' fill='%234a2c17'/%3E%3Crect x='0' y='6' width='2' height='36' fill='%234a2c17'/%3E%3Crect x='46' y='6' width='2' height='36' fill='%234a2c17'/%3E%3Crect x='4' y='2' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='2' y='4' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='42' y='2' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='44' y='4' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='4' y='44' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='2' y='42' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='42' y='44' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='44' y='42' width='2' height='2' fill='%234a2c17'/%3E%3Crect x='6' y='2' width='36' height='2' fill='%23c98a4e'/%3E%3Crect x='2' y='6' width='2' height='36' fill='%23c98a4e'/%3E%3Crect x='6' y='44' width='36' height='2' fill='%236f4220'/%3E%3Crect x='44' y='6' width='2' height='36' fill='%236f4220'/%3E%3Crect x='12' y='7' width='10' height='2' fill='%238a5426'/%3E%3Crect x='28' y='10' width='12' height='2' fill='%238a5426'/%3E%3Crect x='12' y='38' width='12' height='2' fill='%238a5426'/%3E%3Crect x='7' y='14' width='2' height='10' fill='%238a5426'/%3E%3Crect x='39' y='22' width='2' height='10' fill='%238a5426'/%3E%3Crect x='0' y='14' width='48' height='2' fill='%237c4e26'/%3E%3Crect x='0' y='32' width='48' height='2' fill='%237c4e26'/%3E%3Crect x='14' y='0' width='2' height='48' fill='%237c4e26'/%3E%3Crect x='32' y='0' width='2' height='48' fill='%237c4e26'/%3E%3C/g%3E%3C/svg%3E");
   /* 天空底色兜底（场景画不出来时的退路） */
   --bg-0: #63b4e6;
 
-  /* 羊皮纸表面 */
+  /* 羊皮纸表面。纸芯透明度由主题设置「卡片不透明度」(--surface-alpha)驱动，
+     与浅色/深色同一语义：仅在配置自定义背景图时生效，默认 100 = 不透明。 */
   --surface: #f9e9c3;
   --surface-elev: #fdf2d4;
   --surface-sunken: #efddae;
+  /* 离线卡的掺灰羊皮纸（保留色调，叠加同一个不透明度） */
+  --farm-parchment-offline-a: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--status-offline) 9%, #e8dcc0) calc(var(--surface-alpha) * 1%),
+    transparent
+  );
 
   /* 木质描边 */
   --border: #8a5a2b;
@@ -243,35 +251,42 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
    大卡 / compact / mini 三种卡共用一个框，零组件改动。
    框体色：描边 #4a2c17 / 木色 #a86a34 / 高光 #c98a4e / 阴影 #6f4220 /
    内槽 #7c4e26 / 羊皮纸 #f9e9c3。 */
+/* ----------------------------------------------------------- 木框面板 -- */
+/* 星露谷对话框的灵魂是橙棕木框 + chunky 阶梯圆角 + 羊皮纸内芯。
+   用一张 48×48 的 SVG data URI 做 border-image 九宫格（slice 16，无 fill），
+   大卡 / compact / mini 三种卡共用一个框，零组件改动。
+   框体色：描边 #4a2c17 / 木色 #a86a34 / 高光 #c98a4e / 阴影 #6f4220 /
+   内槽 #7c4e26。羊皮纸芯不在 SVG 里，由背景 var(--surface-a) 绘制，
+   以支持「卡片不透明度」设置。 */
 :root[data-appearance="farm"] .server-card,
 :root[data-appearance="farm"] .compact-node-card,
 :root[data-appearance="farm"] .mini-node-card {
   border: 12px solid transparent;
   border-radius: 4px;
   border-image-source: var(--farm-frame-src);
-  border-image-slice: 16 fill;
+  border-image-slice: 16;
   border-image-width: 12px;
   border-image-outset: 0;
   border-image-repeat: stretch;
-  /* 羊皮纸由 border-image 的 fill 提供；背景只作叠加层，clip 到 padding-box
-     以免盖住木框。 */
-  background: transparent;
-  background-clip: padding-box;
+  /* 羊皮纸芯：clip 到 padding-box，不盖住木框。 */
+  background: var(--surface-a) padding-box;
 }
 
 /* 覆写基底的 hover 变色：不在木框上洗颜色，改为羊皮纸微微提亮 */
 :root[data-appearance="farm"] .server-card:hover,
 :root[data-appearance="farm"] .compact-node-card:hover,
 :root[data-appearance="farm"] .mini-node-card:hover {
-  background: rgba(255, 252, 240, 0.28);
+  background:
+    linear-gradient(rgba(255, 252, 240, 0.28), rgba(255, 252, 240, 0.28)) padding-box,
+    var(--surface-a) padding-box;
   border-color: transparent;
 }
 
-/* 离线卡：羊皮纸掺灰红，木框不变（枯萎彩蛋留到装饰阶段） */
+/* 离线卡：羊皮纸掺灰红（随同一个不透明度），木框不变 */
 :root[data-appearance="farm"] .server-card.is-offline,
 :root[data-appearance="farm"] .compact-node-card.is-offline,
 :root[data-appearance="farm"] .mini-node-card.is-offline {
-  background: color-mix(in srgb, var(--status-offline) 9%, #e8dcc0);
+  background: var(--farm-parchment-offline-a) padding-box;
   border-color: transparent;
 }
 
@@ -312,22 +327,23 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
   border: 10px solid transparent;
   border-radius: 4px;
   border-image-source: var(--farm-frame-src);
-  border-image-slice: 16 fill;
+  border-image-slice: 16;
   border-image-width: 10px;
   border-image-outset: 0;
   border-image-repeat: stretch;
-  background: transparent;
-  background-clip: padding-box;
+  background: var(--surface-a) padding-box;
   box-shadow: none;
 }
 /* 总览卡保留一点指标色氛围（掺进羊皮纸，不再洗白） */
 :root[data-appearance="farm"] .overview-card {
   background:
     radial-gradient(
-      120% 100% at 0% 0%,
-      color-mix(in srgb, var(--metric-accent) 7%, transparent) 0%,
-      transparent 52%
-    );
+        120% 100% at 0% 0%,
+        color-mix(in srgb, var(--metric-accent) 7%, transparent) 0%,
+        transparent 52%
+      )
+      padding-box,
+    var(--surface-a) padding-box;
 }
 
 /* 滚动条：木质轨道 */
@@ -628,10 +644,11 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
   border: 6px solid transparent;
   border-radius: 4px;
   border-image-source: var(--farm-frame-src);
-  border-image-slice: 16 fill;
+  border-image-slice: 16;
   border-image-width: 6px;
   border-image-outset: 0;
   border-image-repeat: stretch;
+  background: var(--surface-a) padding-box;
 }
 
 /* 物品格：羊皮纸方槽 + 深棕内描边 */
@@ -767,12 +784,11 @@ html[data-appearance="farm"][data-farm-scene="dusk"]:not([data-bg-image]) body::
   border: 10px solid transparent;
   border-radius: 4px;
   border-image-source: var(--farm-frame-src);
-  border-image-slice: 16 fill;
+  border-image-slice: 16;
   border-image-width: 10px;
   border-image-outset: 0;
   border-image-repeat: stretch;
-  background: transparent;
-  background-clip: padding-box;
+  background: var(--surface-a) padding-box;
 }
 
 /* 详情页「返回」= 小木牌 */
