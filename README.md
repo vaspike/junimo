@@ -6,6 +6,7 @@ Junimo是一款灵感来自`星露谷物语`的komari主题, 名称取自星露�
 > 因此Junimo继承了上游主题的大部分能力
 
 ## 预览
+![](./preview.png)
 
 <img width="1768" height="1113" alt="image" src="https://github.com/user-attachments/assets/4975ffe4-b3e7-4b19-91de-ecba5bd5656b" />
 
