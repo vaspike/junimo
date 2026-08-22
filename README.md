@@ -1,4 +1,6 @@
 # Junimo
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/vaspike/junimo/total?style=for-the-badge&color=orange)
+
 Junimo是一款灵感来自`星露谷物语`的komari主题, 名称取自星露谷里那些住在农场上、默默帮你收菜(采集服务器数据)的小精灵。
 
 > Junimo是站在前人的肩膀上进行的实现, 感谢: [Komari-Theme-LuminaPlus](https://github.com/shanyang242/Komari-Theme-LuminaPlus)
