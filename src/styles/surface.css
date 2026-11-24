@@ -9,7 +9,7 @@ body::before {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: -2;
+  z-index: -3;
   /* 稳定、与滚动无关的尺寸。用 100vw/100vh(不用 inset:0 或 dvh)把这一层与动态视口解耦:
      移动端滚动时 URL 栏收起、桌面端滚动条切换都不再改变盒子,因此 `background-size: cover`
      不会在滚动中途重算——那次重算正是缩放抖动的来源。 */
@@ -22,24 +22,67 @@ body::before {
   pointer-events: none;
 }
 
-@media (max-width: 720px) {
-  body::before {
-    background-image: var(--bg-image-mobile, var(--bg-image-desktop, none));
-  }
-}
-
-/* 图片上的可读性遮罩层。用 --bg-0(注入 --bg-scrim),从而暗色模式自动变暗、亮色模式自动
-   变亮;玻璃关闭时透明。尺寸与图片层一样保持稳定。 */
-body::after {
-  content: "";
+/* 视频由 BackgroundVideo portal 到 body，夹在静态图与遮罩之间。未开始播放时透明，
+   让首帧图片持续可见；设备图片与视频 URL 由 BackgroundLayer 按同一断点选择。 */
+.background-video {
   position: fixed;
   top: 0;
   left: 0;
   z-index: -2;
   width: 100vw;
   height: 100vh;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.background-video[data-playing="true"] {
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  body::before {
+    background-image: var(--bg-image-mobile, var(--bg-image-desktop, none));
+  }
+
+  /* 移动端消费摘要球固定在右下角，视频控制按钮放到对称的左下角。 */
+  .background-video-toggle {
+    right: auto;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    left: max(16px, env(safe-area-inset-left));
+  }
+}
+
+/* 图片/视频上的可读性遮罩层。用 --bg-0(注入 --bg-scrim),从而暗色模式自动变暗、亮色模式自动
+   变亮;玻璃关闭时透明。尺寸与图片层一样保持稳定。 */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
   background: var(--bg-scrim, transparent);
   pointer-events: none;
+}
+
+.background-video-toggle {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 80;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  box-shadow: 0 10px 28px -22px rgba(0, 0, 0, 0.38);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-video {
+    transition: none;
+  }
 }
 
 /* 有意不做卡片磨砂(backdrop-filter):它依赖 GPU 合成,不同设备/浏览器渲染差异大

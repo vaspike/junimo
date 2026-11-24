@@ -46,6 +46,39 @@ export function resolveBackgroundUrl(
   return parts[0] ?? "";
 }
 
+interface BackgroundVideoInput {
+  enableBackgroundImage: boolean;
+  backgroundImageInFarm?: boolean;
+  backgroundImage: string;
+  backgroundVideo: string;
+  backgroundImageMobile: string;
+  backgroundVideoMobile: string;
+}
+
+/** 视频与图片使用相同的设备、外观和回退规则；当前外观没有图片回退时不加载视频。 */
+export function resolveBackgroundVideo(
+  settings: BackgroundVideoInput,
+  appearance: ResolvedAppearance,
+  farmScene?: "day" | "dusk" | null,
+  isMobile = false,
+): string {
+  if (!settings.enableBackgroundImage) return "";
+  if (appearance === "farm" && settings.backgroundImageInFarm === false) return "";
+  const variant =
+    appearance === "dark" || (appearance === "farm" && farmScene === "dusk")
+      ? "dark"
+      : "light";
+  const desktopImage = resolveBackgroundUrl(settings.backgroundImage, variant);
+  const image = isMobile
+    ? resolveBackgroundUrl(settings.backgroundImageMobile, variant) || desktopImage
+    : desktopImage;
+  if (!image) return "";
+  const desktopVideo = resolveBackgroundUrl(settings.backgroundVideo, variant);
+  return isMobile
+    ? resolveBackgroundUrl(settings.backgroundVideoMobile, variant) || desktopVideo
+    : desktopVideo;
+}
+
 export function parseBackgroundAlignment(value: unknown): {
   size: BackgroundSize;
   position: BackgroundPosition;

@@ -1,20 +1,26 @@
 import { useEffect } from "react";
+import { BackgroundVideo } from "@/components/shell/BackgroundVideo";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
 import {
   applyBackgroundCache,
   buildBackgroundCache,
   persistBackgroundCache,
+  resolveBackgroundVideo,
 } from "@/utils/background";
 
-/** 同步背景 CSS 变量和首帧缓存；实际背景由 body 伪元素绘制。 */
+/** 同步图片首帧缓存，并在满足回退条件时叠加当前设备的视频。 */
 export function BackgroundLayer() {
   const { resolvedAppearance, farmScene } = usePreferences();
+  const isMobile = useMediaQuery("(max-width: 720px)");
   const {
     enableBackgroundImage,
     backgroundImageInFarm,
     backgroundImage,
+    backgroundVideo,
     backgroundImageMobile,
+    backgroundVideoMobile,
     backgroundAlignment,
     surfaceOpacity,
     isReady,
@@ -44,5 +50,22 @@ export function BackgroundLayer() {
     farmScene,
   ]);
 
-  return null;
+  const videoUrl = isReady
+    ? resolveBackgroundVideo(
+        {
+          enableBackgroundImage,
+          backgroundImageInFarm,
+          backgroundImage,
+          backgroundVideo,
+          backgroundImageMobile,
+          backgroundVideoMobile,
+        },
+        resolvedAppearance,
+        farmScene,
+        isMobile,
+      )
+    : "";
+  return videoUrl ? (
+    <BackgroundVideo key={videoUrl} src={videoUrl} alignment={backgroundAlignment} />
+  ) : null;
 }

@@ -122,6 +122,21 @@ describe("normalizeThemeSettings", () => {
     ).toBe(false);
   });
 
+  it("defaults and normalizes optional desktop and mobile background videos", () => {
+    const defaults = normalizeThemeSettings({});
+    expect(defaults.backgroundVideo).toBe("");
+    expect(defaults.backgroundVideoMobile).toBe("");
+    const resolved = normalizeThemeSettings({
+      backgroundVideo: " /light.mp4 | /dark.mp4 ",
+      backgroundVideoMobile: " /light-mobile.mp4 | /dark-mobile.mp4 ",
+    });
+    expect(resolved.backgroundVideo).toBe("/light.mp4|/dark.mp4");
+    expect(resolved.backgroundVideoMobile).toBe("/light-mobile.mp4|/dark-mobile.mp4");
+    expect(normalizeThemeSettings({ backgroundVideoMobile: 42 } as never).backgroundVideoMobile).toBe(
+      "",
+    );
+  });
+
   it("parses hiddenNodes from a delimited string and dedupes", () => {
     expect(normalizeThemeSettings({}).hiddenNodes).toEqual([]);
     expect(

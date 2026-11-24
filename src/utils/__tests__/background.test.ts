@@ -9,6 +9,7 @@ import {
   normalizeSurfaceOpacity,
   parseBackgroundAlignment,
   resolveBackgroundUrl,
+  resolveBackgroundVideo,
   SURFACE_SCRIM_THRESHOLD,
 } from "@/utils/background";
 
@@ -63,6 +64,78 @@ describe("resolveBackgroundUrl", () => {
 
   it("returns empty for empty input", () => {
     expect(resolveBackgroundUrl("", "dark")).toBe("");
+  });
+});
+
+describe("resolveBackgroundVideo", () => {
+  const base = {
+    enableBackgroundImage: true,
+    backgroundImageInFarm: true,
+    backgroundImage: "/light.webp|/dark.webp",
+    backgroundVideo: "/light.mp4|/dark.mp4",
+    backgroundImageMobile: "",
+    backgroundVideoMobile: "",
+  };
+
+  it("selects the video for the current appearance and farm scene", () => {
+    expect(resolveBackgroundVideo(base, "light")).toBe("/light.mp4");
+    expect(resolveBackgroundVideo(base, "dark")).toBe("/dark.mp4");
+    expect(resolveBackgroundVideo(base, "farm", "day")).toBe("/light.mp4");
+    expect(resolveBackgroundVideo(base, "farm", "dusk")).toBe("/dark.mp4");
+  });
+
+  it("selects mobile videos and falls back to desktop videos like images", () => {
+    const mobile = {
+      ...base,
+      backgroundImageMobile: "/light-mobile.webp|/dark-mobile.webp",
+      backgroundVideoMobile: "/light-mobile.mp4|/dark-mobile.mp4",
+    };
+    expect(resolveBackgroundVideo(mobile, "light", null, true)).toBe("/light-mobile.mp4");
+    expect(resolveBackgroundVideo(mobile, "dark", null, true)).toBe("/dark-mobile.mp4");
+    expect(resolveBackgroundVideo(base, "light", null, true)).toBe("/light.mp4");
+    expect(
+      resolveBackgroundVideo(
+        { ...mobile, backgroundVideoMobile: "|/dark-mobile.mp4" },
+        "light",
+        null,
+        true,
+      ),
+    ).toBe("/light.mp4");
+  });
+
+  it("allows mobile-only media when its own image fallback is configured", () => {
+    const mobileOnly = {
+      ...base,
+      backgroundImage: "",
+      backgroundImageMobile: "/mobile.webp",
+      backgroundVideoMobile: "/mobile.mp4",
+    };
+    expect(resolveBackgroundVideo(mobileOnly, "light", null, true)).toBe("/mobile.mp4");
+    expect(resolveBackgroundVideo(mobileOnly, "light")).toBe("");
+    expect(
+      resolveBackgroundVideo(
+        { ...mobileOnly, backgroundImageMobile: "" },
+        "light",
+        null,
+        true,
+      ),
+    ).toBe("");
+  });
+
+  it("requires an image fallback for the current appearance", () => {
+    const darkImageOnly = { ...base, backgroundImage: "|/dark.webp" };
+    expect(resolveBackgroundVideo(darkImageOnly, "light")).toBe("");
+    expect(resolveBackgroundVideo(darkImageOnly, "dark")).toBe("/dark.mp4");
+    expect(resolveBackgroundVideo({ ...base, backgroundVideo: "" }, "light")).toBe("");
+  });
+
+  it("respects the custom-background and farm switches", () => {
+    expect(
+      resolveBackgroundVideo({ ...base, enableBackgroundImage: false }, "light"),
+    ).toBe("");
+    expect(
+      resolveBackgroundVideo({ ...base, backgroundImageInFarm: false }, "farm", "day"),
+    ).toBe("");
   });
 });
 

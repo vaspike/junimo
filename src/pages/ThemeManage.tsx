@@ -323,6 +323,8 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     enableBackgroundImage: settings.enableBackgroundImage,
     backgroundImageInFarm: settings.backgroundImageInFarm,
     backgroundImage: settings.backgroundImage,
+    backgroundVideo: settings.backgroundVideo,
+    backgroundVideoMobile: settings.backgroundVideoMobile,
     backgroundImageMobile: settings.backgroundImageMobile,
     backgroundAlignment: settings.backgroundAlignment,
     surfaceOpacity: settings.surfaceOpacity,
@@ -1509,6 +1511,8 @@ export function ThemeManage() {
       costPremiums: normalizeCostPremiums(rest.costPremiums),
       costRateApiUrl: normalizeCostRateApiUrl(rest.costRateApiUrl),
       backgroundImage: normalizeBackgroundUrl(rest.backgroundImage),
+      backgroundVideo: normalizeBackgroundUrl(rest.backgroundVideo),
+      backgroundVideoMobile: normalizeBackgroundUrl(rest.backgroundVideoMobile),
       backgroundImageMobile: normalizeBackgroundUrl(rest.backgroundImageMobile),
       backgroundAlignment: normalizeBackgroundAlignment(rest.backgroundAlignment),
     };
@@ -1889,21 +1893,21 @@ export function ThemeManage() {
       <InstancePanel
         kicker={<><span className="instance-panel-kicker-num">03</span>背景</>}
         title="背景与透明度"
-        description="为站点设置自定义背景图，并调节卡片不透明度。背景图可分别为浅色 / 深色与桌面 / 移动端设置；卡片不透明度调低后会自动叠加可读性遮罩。"
+        description="为站点设置自定义背景图与视频，并调节卡片不透明度。图片与视频均可分别为浅色 / 深色与桌面 / 移动端设置；视频作为图片的增强，卡片不透明度调低后会自动叠加可读性遮罩。"
         aside={<Wallpaper size={16} />}
       >
         <div className="flex flex-col gap-4">
           <ToggleRow
             field="enableBackgroundImage"
-            title="启用背景图"
-            desc="关闭后不加载任何背景图（下方 URL 配置会保留），站点回到纯色主题；再次开启即恢复。"
+            title="启用自定义背景"
+            desc="关闭后不加载背景图或视频（下方 URL 配置会保留），站点回到纯色主题；再次开启即恢复。"
             checked={draft.enableBackgroundImage}
             onPatch={patch}
           />
           <ToggleRow
             field="backgroundImageInFarm"
             title="在像素农场主题中生效"
-            desc="开启后，自定义背景图会替换农场主题自带的程序化场景（面板仍保持农场风格）；关闭则农场主题始终使用自己的场景与四季。"
+            desc="开启后，自定义背景图与视频会替换农场主题自带的程序化场景（面板仍保持农场风格）；关闭则农场主题始终使用自己的场景与四季。"
             checked={draft.backgroundImageInFarm}
             onPatch={patch}
           />
@@ -1934,6 +1938,39 @@ export function ThemeManage() {
               />
               <span className="text-[11px] text-[var(--text-tertiary)]">
                 屏宽 ≤ 720px 时生效；同样支持 <code>浅色图|深色图</code> 写法。
+              </span>
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="flex min-w-0 flex-col gap-2">
+              <span className="text-[12px] font-medium text-[var(--text-secondary)]">
+                桌面端背景视频（可选）
+              </span>
+              <input
+                value={draft.backgroundVideo}
+                onChange={(event) => patch("backgroundVideo", event.target.value)}
+                placeholder="https://example.com/bg.mp4"
+                className="surface-inset w-full px-3 py-2 text-[13px] outline-none"
+              />
+              <span className="text-[11px] leading-relaxed text-[var(--text-tertiary)]">
+                屏宽大于 720px 时生效，使用当前外观的桌面背景图作为首帧与失败回退。
+                支持 <code>浅色视频|深色视频</code>（农场主题对应昼 / 夕），建议使用无音轨的 H.264 MP4 直链。
+              </span>
+            </label>
+            <label className="flex min-w-0 flex-col gap-2">
+              <span className="text-[12px] font-medium text-[var(--text-secondary)]">
+                移动端背景视频（可选）
+              </span>
+              <input
+                value={draft.backgroundVideoMobile}
+                onChange={(event) => patch("backgroundVideoMobile", event.target.value)}
+                placeholder="留空则沿用桌面端背景视频"
+                className="surface-inset w-full px-3 py-2 text-[13px] outline-none"
+              />
+              <span className="text-[11px] leading-relaxed text-[var(--text-tertiary)]">
+                屏宽 ≤ 720px 时生效，留空沿用桌面视频；使用移动端背景图作为首帧与失败回退，未配置时沿用桌面图。
+                同样支持 <code>浅色视频|深色视频</code>。
               </span>
             </label>
           </div>

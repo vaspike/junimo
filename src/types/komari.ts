@@ -170,6 +170,10 @@ export interface ThemeSettings {
   /** 农场主题招牌漆色指派：颜色 id → 节点身份列表。未配置的节点用默认木棕色。 */
   farmSignColors?: Record<string, unknown>;
   backgroundImage?: string;
+  /** 桌面端背景视频直链；需有当前外观的桌面背景图作为首帧与失败回退。 */
+  backgroundVideo?: string;
+  /** 移动端背景视频直链，留空沿用桌面视频；图片回退规则与 backgroundImageMobile 一致。 */
+  backgroundVideoMobile?: string;
   backgroundImageMobile?: string;
   backgroundAlignment?: string;
   surfaceOpacity?: number;

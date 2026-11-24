@@ -99,6 +99,8 @@ export interface ResolvedThemeSettings {
   backgroundImageInFarm: boolean;
   farmSignColors: FarmSignColorMap;
   backgroundImage: string;
+  backgroundVideo: string;
+  backgroundVideoMobile: string;
   backgroundImageMobile: string;
   backgroundAlignment: string;
   surfaceOpacity: number;
@@ -147,6 +149,8 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   backgroundImageInFarm: true,
   farmSignColors: {},
   backgroundImage: "",
+  backgroundVideo: "",
+  backgroundVideoMobile: "",
   backgroundImageMobile: "",
   backgroundAlignment: DEFAULT_BACKGROUND_ALIGNMENT,
   surfaceOpacity: DEFAULT_SURFACE_OPACITY,
@@ -276,6 +280,8 @@ export function normalizeThemeSettings(
     backgroundImageInFarm: enabledUnlessFalse(settings?.backgroundImageInFarm),
     farmSignColors: normalizeFarmSignColors(settings?.farmSignColors),
     backgroundImage: normalizeBackgroundUrl(settings?.backgroundImage),
+    backgroundVideo: normalizeBackgroundUrl(settings?.backgroundVideo),
+    backgroundVideoMobile: normalizeBackgroundUrl(settings?.backgroundVideoMobile),
     backgroundImageMobile: normalizeBackgroundUrl(settings?.backgroundImageMobile),
     backgroundAlignment: normalizeBackgroundAlignment(settings?.backgroundAlignment),
     surfaceOpacity: normalizeSurfaceOpacity(settings?.surfaceOpacity),
